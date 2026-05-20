@@ -35,7 +35,29 @@ const MOOD_IMAGES = {
 const SPIN_MOODS = ['dodging', 'sly', 'accusing', 'suspicious', 'defiant', 'angry'];
 
 // ===== נתוני משחק =====
-const DANGER_KEYWORDS = ['משפט', 'תיק', 'שוחד', 'חקירה', 'מחדל', '7 באוקטובר', 'שביעי באוקטובר', 'אוקטובר', 'חטופים', 'שרה', 'סיגר', 'גלנט', 'מתפטר', 'התפטרות', 'אשם', 'כישלון', 'הדלפה', 'צוללות', 'נכשלת', 'שקרן'];
+// רגיש — ביבי מתמודד בקור רוח ועקיצה. לא פאניקה. מעלה מתח מעט.
+const SENSITIVE_KEYWORDS = [
+    'משפט', 'תיק', 'שוחד', 'חקירה', 'פרקליטות', 'היועצת', 'אישומים', 'עדות',
+    'סיגר', 'שמפניה', 'שמפניות', 'מתנות', 'צוללות', 'הדלפה', 'גלנט',
+    'תקשורת', 'ערוץ', 'קואליציה', 'חרדים', 'גיוס', 'בן גביר', 'סמוטריץ',
+    'בחירות', 'סקרים', 'יוקר', 'מחירים', 'דיור',
+];
+// כואב באמת — רק אלה (וחפירה חוזרת) באמת סודקים אותו.
+const DEVASTATING_KEYWORDS = [
+    'מחדל', '7 באוקטובר', 'שביעי באוקטובר', 'חטופים', 'משפחות החטופים',
+    'כישלון', 'נכשל', 'אשם', 'אחריות', 'אחראי', 'תפטר', 'שרה', 'יאיר',
+];
+// מילים נסתרות — תגובת Breaking מותאמת (יוצר חקירה: "מה יקרה אם אכתוב X?")
+const HIDDEN_KEYWORDS = [
+    { k: 'צוללות', text: 'פרשת הצוללות שוב בכותרות' },
+    { k: 'שמפניה', text: 'מתנות יוקרה? אין כאן כלום' },
+    { k: 'שמפניות', text: 'מתנות יוקרה? אין כאן כלום' },
+    { k: 'סיגר', text: 'פרשת המתנות מתחממת' },
+    { k: 'הדלפה', text: 'חקירת ההדלפות מתרחבת' },
+    { k: 'שרה', text: 'הגברת הראשונה נכנסת לתמונה' },
+    { k: 'איראן', text: 'מתיחות ביטחונית בצפון' },
+    { k: 'ביביסטים', text: 'הבסיס מתגייס לרשת' },
+];
 
 const LOADING_LINES = [
     'מתייעץ עם יועצים', 'מנסח תשובה שלא תסתבך משפטית', 'מחפש ניסוח דיפלומטי',
@@ -183,7 +205,7 @@ function setPanic(intensity) {
 
 // ===== קומבו =====
 function showCombo(n) {
-    comboEl.textContent = `COMBO x${n}`;
+    comboEl.innerHTML = `COMBO x${n}<span class="combo-sub">רמת הלחץ עולה</span>`;
     comboEl.classList.remove('hidden');
     requestAnimationFrame(() => comboEl.classList.add('show'));
 }
@@ -193,26 +215,31 @@ function hideCombo() {
 }
 
 // ===== Breaking News =====
-function triggerBreaking(question) {
-    const found = DANGER_KEYWORDS.find(k => question.includes(k));
-    breakingText.textContent = found ? `שאלה רגישה בנושא "${found}"` : 'שאלה נפיצה התקבלה';
+let breakingTimer = null;
+function showBreaking(text) {
+    breakingText.textContent = text;
     breaking.classList.remove('hidden');
     redpulse();
-    setTimeout(() => breaking.classList.add('hidden'), 3500);
+    clearTimeout(breakingTimer);
+    breakingTimer = setTimeout(() => breaking.classList.add('hidden'), 3500);
 }
 
 // ===== מד מתח מצטבר (לב ההסלמה) =====
-// שאלה נפיצה → קפיצה לפאניקה ונשארת. רגילה → מתקרר לאט.
+// ביבי תותח עם קור רוח: רגיש → עולה מעט, נשאר רגוע. רק נושא כואב או
+// חפירה בלתי פוסקת מסלימים לפאניקה. שאלה רגילה → מתקרר.
 function applyStress(question) {
     const p = calculatePressure(question);
-    if (isDanger(question)) {
-        stress = Math.min(100, Math.max(stress, 50) + 28);   // ישר לפאניקה
-    } else if (p >= 55) {
-        stress = Math.min(100, stress + 22 + (comboCount > 1 ? (comboCount - 1) * 6 : 0));
-    } else if (p >= 35) {
-        stress = Math.min(100, stress + 10);
+    const comboBonus = comboCount > 1 ? (comboCount - 1) * 6 : 0;
+    let delta = null;
+    if (isDevastating(question)) delta = 20 + comboBonus;   // כואב — אבל לוקח כמה כאלה לשבור
+    else if (isSensitive(question)) delta = 11 + comboBonus; // רגיש — נשאר בשליטה
+    else if (p >= 55) delta = 9 + comboBonus;
+    else if (p >= 35) delta = 5;
+
+    if (delta === null) {
+        stress = Math.max(0, Math.round(stress * 0.7) - 5);  // מתקרר מהר כשמרפים
     } else {
-        stress = Math.max(0, Math.round(stress * 0.6) - 4);  // מתקרר
+        stress = Math.min(100, stress + delta);
     }
     return stress;
 }
@@ -308,8 +335,11 @@ async function fetchAnswer(question, { another = false } = {}) {
 }
 
 // ===== זרימה ראשית =====
-function isDanger(q) { return DANGER_KEYWORDS.some(k => q.includes(k)); }
+function isSensitive(q) { return SENSITIVE_KEYWORDS.some(k => q.includes(k)); }
+function isDevastating(q) { return DEVASTATING_KEYWORDS.some(k => q.includes(k)); }
+function isDanger(q) { return isSensitive(q) || isDevastating(q); }
 function isHard(q) { return calculatePressure(q) >= 50 || isDanger(q); }
+function findHidden(q) { return HIDDEN_KEYWORDS.find(h => q.includes(h.k)); }
 
 async function ask() {
     const question = questionInput.value;
@@ -331,11 +361,16 @@ async function ask() {
         hideCombo();
     }
 
-    // עדכון המתח המצטבר (נפיץ → קופץ ונשאר; רגיל → מתקרר)
+    // עדכון המתח המצטבר
+    const prevStress = stress;
     applyStress(question);
 
-    // Breaking news למילות סכנה
-    if (isDanger(question)) { unlock('danger'); triggerBreaking(question); }
+    // Breaking News — במינון: מילה נסתרת / נושא כואב / חציית סף פאניקה
+    const hidden = findHidden(question);
+    if (isDanger(question)) unlock('danger');
+    if (hidden) showBreaking(hidden.text);
+    else if (isDevastating(question)) showBreaking('שאלה כואבת במיוחד');
+    else if (prevStress < 70 && stress >= 70) showBreaking('הלחץ מתחיל להישבר...');
 
     // אירוע נדיר (1 ל-15)
     if (Math.random() < 1 / 15) {

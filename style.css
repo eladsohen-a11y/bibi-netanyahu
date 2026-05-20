@@ -444,6 +444,7 @@ body.bd-3 #bibi { transform: scale(1.15); }
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 .combo.show { transform: rotate(-8deg) scale(1); }
+.combo-sub { display: block; font-size: 11px; font-weight: 700; opacity: 0.95; margin-top: 1px; }
 
 /* שורת טעינה מצחיקה */
 .loading-line {
