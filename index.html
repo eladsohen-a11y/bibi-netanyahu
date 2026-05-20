@@ -10,6 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- שכבת אפקטים על כל המסך (פלאש, גליץ', אדום, blackout) -->
+    <div id="fx-overlay"></div>
+
+    <!-- באנר חדשות דחופות -->
+    <div id="breaking" class="breaking hidden">
+        <span class="breaking-tag">🚨 חדשות דחופות</span>
+        <span id="breaking-text"></span>
+    </div>
+
     <main class="stage">
         <h1 class="title">מה ביבי היה אומר?</h1>
 
@@ -18,21 +27,28 @@
                 <p id="answer-text"></p>
             </div>
             <img id="bibi" src="images/bibi-idle.png" alt="ביבי">
+            <div id="loading-line" class="loading-line hidden"></div>
+            <div id="combo" class="combo hidden"></div>
         </div>
 
-        <div id="pressure-meter" class="pressure-meter hidden">
-            <span class="pressure-label">רמת לחץ:</span>
-            <div class="pressure-bar">
-                <div class="pressure-fill" id="pressure-fill"></div>
+        <div id="meters" class="meters hidden">
+            <div class="meter">
+                <span class="meter-label">רמת לחץ</span>
+                <div class="meter-bar"><div class="meter-fill" id="pressure-fill"></div></div>
+                <span class="meter-value" id="pressure-value">0%</span>
             </div>
-            <span class="pressure-value" id="pressure-value">0%</span>
+            <div class="meter">
+                <span class="meter-label" id="stat-label">ספין</span>
+                <div class="meter-bar"><div class="meter-fill stat" id="stat-fill"></div></div>
+                <span class="meter-value" id="stat-value">0%</span>
+            </div>
         </div>
 
         <div class="input-area">
             <input
                 type="text"
                 id="question"
-                placeholder="כתוב שאלה או נושא..."
+                placeholder="כתוב שאלה או נושא... (נסה להפיל אותו)"
                 autocomplete="off"
             >
             <button id="ask-btn">שאל את ביבי</button>
@@ -44,6 +60,21 @@
             <button id="whatsapp-btn" class="share whatsapp">שתף בוואטסאפ</button>
         </div>
     </main>
+
+    <!-- פופ-אפ הישג -->
+    <div id="achievement" class="achievement hidden">
+        <span class="achievement-icon" id="achievement-icon">🏆</span>
+        <div class="achievement-body">
+            <div class="achievement-title">הישג נפתח!</div>
+            <div class="achievement-text" id="achievement-text"></div>
+        </div>
+    </div>
+
+    <!-- טיקר חדשות חי -->
+    <div id="ticker" class="ticker hidden">
+        <span class="ticker-tag">ביבי לייב</span>
+        <div class="ticker-window"><div class="ticker-track" id="ticker-track"></div></div>
+    </div>
 
     <script src="responses.js"></script>
     <script src="script.js"></script>

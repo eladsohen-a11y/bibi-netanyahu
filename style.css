@@ -268,3 +268,247 @@ button.share:hover {
         font-size: 16px;
     }
 }
+
+/* ============ שכבת המשחק ============ */
+
+body { padding-bottom: 56px; transition: background 0.5s ease; }
+
+/* קריסה מתקדמת — ככל שהלחץ עולה, הרקע אדום יותר והבמה רועדת */
+body.bd-1 { background: linear-gradient(180deg, #fdeaea 0%, #f6dede 100%); }
+body.bd-2 { background: linear-gradient(180deg, #fcdcdc 0%, #f3c9c9 100%); }
+body.bd-3 { background: linear-gradient(180deg, #f8c4c4 0%, #eda9a9 100%); }
+body.bd-2 .stage { animation: stageShake 0.5s ease-in-out infinite; }
+body.bd-3 .stage { animation: stageShake 0.28s ease-in-out infinite; }
+@keyframes stageShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* זום על הפנים ככל שהלחץ עולה */
+#bibi { transition: opacity 0.35s ease-in-out, transform 0.45s ease-in-out; }
+body.bd-1 #bibi { transform: scale(1.04); }
+body.bd-2 #bibi { transform: scale(1.09); }
+body.bd-3 #bibi { transform: scale(1.15); }
+
+/* מדדים */
+.meters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 360px;
+    margin: 0 auto 18px;
+}
+.meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.meter-label { white-space: nowrap; min-width: 70px; text-align: start; }
+.meter-bar {
+    flex: 1;
+    height: 13px;
+    background: white;
+    border: 2px solid #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.meter-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4ade80 0%, #facc15 50%, #ef4444 100%);
+    transition: width 0.6s ease;
+}
+.meter-fill.stat {
+    background: linear-gradient(90deg, #60a5fa 0%, #a78bfa 60%, #f472b6 100%);
+}
+.meter-value { min-width: 42px; text-align: start; }
+
+/* באנר חדשות דחופות */
+.breaking {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 60;
+    background: #cc0000;
+    color: white;
+    font-weight: 900;
+    padding: 10px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    animation: breakingIn 0.3s ease, breakingPulse 1s ease-in-out infinite;
+}
+.breaking-tag { background: white; color: #cc0000; padding: 2px 8px; border-radius: 4px; }
+@keyframes breakingIn { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes breakingPulse { 50% { background: #ff1a1a; } }
+
+/* טיקר חדשות */
+.ticker {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 55;
+    height: 40px;
+    background: #1a1a1a;
+    color: white;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+.ticker-tag {
+    background: #cc0000;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-weight: 900;
+    white-space: nowrap;
+    z-index: 2;
+}
+.ticker-window { flex: 1; overflow: hidden; position: relative; height: 100%; }
+.ticker-track {
+    position: absolute;
+    white-space: nowrap;
+    will-change: transform;
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    font-weight: 700;
+    animation: tickerScroll 30s linear infinite;
+}
+.ticker-track span { padding: 0 40px; }
+@keyframes tickerScroll {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+}
+
+/* פופ-אפ הישג */
+.achievement {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 70;
+    background: #1a1a1a;
+    color: white;
+    border: 2px solid #facc15;
+    border-radius: 14px;
+    padding: 12px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    opacity: 0;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    max-width: 90vw;
+}
+.achievement.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.achievement-icon { font-size: 30px; }
+.achievement-title { font-size: 12px; color: #facc15; font-weight: 900; }
+.achievement-text { font-size: 15px; font-weight: 700; }
+
+/* קומבו */
+.combo {
+    position: absolute;
+    top: -6px;
+    left: 10px;
+    z-index: 5;
+    background: #cc0000;
+    color: white;
+    font-weight: 900;
+    font-size: 18px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    transform: rotate(-8deg) scale(0);
+    transition: transform 0.25s cubic-bezier(.5,1.8,.5,1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.combo.show { transform: rotate(-8deg) scale(1); }
+
+/* שורת טעינה מצחיקה */
+.loading-line {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(50%);
+    background: rgba(26,26,26,0.85);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 20px;
+    white-space: nowrap;
+    max-width: 90%;
+    text-align: center;
+}
+.loading-line::after {
+    content: '';
+    animation: dots 1.2s steps(4, end) infinite;
+}
+@keyframes dots {
+    0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; }
+}
+
+/* שכבת אפקטים על כל המסך */
+#fx-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+}
+#fx-overlay.flash {
+    background: white;
+    opacity: 0.9;
+    transition: opacity 0.4s ease;
+    animation: flashFade 0.5s ease forwards;
+}
+@keyframes flashFade { from { opacity: 0.9; } to { opacity: 0; } }
+#fx-overlay.redpulse {
+    background: radial-gradient(circle, transparent 40%, rgba(204,0,0,0.45) 100%);
+    opacity: 1;
+    animation: redPulse 0.8s ease-in-out 2;
+}
+@keyframes redPulse { 50% { opacity: 0.4; } }
+#fx-overlay.blackout {
+    background: #000;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+
+/* גליץ' על הדמות */
+#bibi.glitch { animation: glitch 0.4s steps(2) 3; }
+@keyframes glitch {
+    0% { transform: translate(0); filter: none; }
+    20% { transform: translate(-4px, 2px); filter: hue-rotate(90deg) saturate(3); }
+    40% { transform: translate(4px, -2px); filter: invert(0.2); }
+    60% { transform: translate(-3px, -1px); filter: hue-rotate(-90deg); }
+    80% { transform: translate(3px, 1px); filter: saturate(0.3); }
+    100% { transform: translate(0); filter: none; }
+}
+
+/* הודעת מערכת (מיקרופון נכבה / החיבור נותק) */
+.sys-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 6;
+    background: rgba(255,255,255,0.7);
+    color: #cc0000;
+    font-weight: 900;
+    font-size: 22px;
+    text-align: center;
+    backdrop-filter: blur(2px);
+    border-radius: 12px;
+}
+
+@media (max-width: 600px) {
+    .meters { max-width: 100%; }
+    .achievement-text { font-size: 14px; }
+    .sys-msg { font-size: 18px; }
+}

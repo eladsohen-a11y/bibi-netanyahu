@@ -2,10 +2,14 @@ import express from 'express';
 import dotenv from 'dotenv';
 import Anthropic from '@anthropic-ai/sdk';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // override: true — חלק מהסביבות מזריקות ANTHROPIC_API_KEY ריק; זה מבטיח
-// שהמפתח מקובץ .env תמיד מנצח
-dotenv.config({ override: true });
+// שהמפתח מקובץ .env תמיד מנצח. path מוחלט — עובד מכל תיקיית הרצה.
+dotenv.config({ override: true, path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,8 +65,8 @@ app.set('trust proxy', 1);
 
 app.use(express.json({ limit: '32kb' }));
 
-// מגיש את קבצי האתר (dotfiles כמו .env נחסמים אוטומטית)
-app.use(express.static('.'));
+// מגיש את קבצי האתר (dotfiles כמו .env נחסמים אוטומטית). path מוחלט.
+app.use(express.static(__dirname));
 
 // ===== הגנות מפני ניצול =====
 
