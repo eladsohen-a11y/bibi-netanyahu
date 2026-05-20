@@ -1,0 +1,16 @@
+{
+  "name": "bibi-app",
+  "version": "1.0.0",
+  "description": "מה ביבי היה אומר",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.69.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2"
+  }
+}

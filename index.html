@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מה ביבי היה אומר?</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="stage">
+        <h1 class="title">מה ביבי היה אומר?</h1>
+
+        <div class="bibi-container">
+            <div id="speech-bubble" class="speech-bubble hidden">
+                <p id="answer-text"></p>
+            </div>
+            <img id="bibi" src="images/bibi-idle.png" alt="ביבי">
+        </div>
+
+        <div id="pressure-meter" class="pressure-meter hidden">
+            <span class="pressure-label">רמת לחץ:</span>
+            <div class="pressure-bar">
+                <div class="pressure-fill" id="pressure-fill"></div>
+            </div>
+            <span class="pressure-value" id="pressure-value">0%</span>
+        </div>
+
+        <div class="input-area">
+            <input
+                type="text"
+                id="question"
+                placeholder="כתוב שאלה או נושא..."
+                autocomplete="off"
+            >
+            <button id="ask-btn">שאל את ביבי</button>
+        </div>
+
+        <div class="actions hidden" id="actions">
+            <button id="another-btn" class="secondary">רוצה תשובה אחרת?</button>
+            <button id="copy-btn" class="secondary">העתק</button>
+            <button id="whatsapp-btn" class="share whatsapp">שתף בוואטסאפ</button>
+        </div>
+    </main>
+
+    <script src="responses.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
