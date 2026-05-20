@@ -18,8 +18,7 @@ const loadingLine = document.getElementById('loading-line');
 const comboEl = document.getElementById('combo');
 const breaking = document.getElementById('breaking');
 const breakingText = document.getElementById('breaking-text');
-const ticker = document.getElementById('ticker');
-const tickerTrack = document.getElementById('ticker-track');
+const panicBadge = document.getElementById('panic-badge');
 const achievement = document.getElementById('achievement');
 const achievementIcon = document.getElementById('achievement-icon');
 const achievementText = document.getElementById('achievement-text');
@@ -71,6 +70,7 @@ let loadingTimer = null;
 let useAI = true;
 let comboCount = 0;
 let totalQuestions = 0;
+let stress = 0;            // מד מתח מצטבר — זוכר את ההיסטוריה
 const history = [];
 const unlocked = new Set(JSON.parse(localStorage.getItem('bibi_achievements') || '[]'));
 
@@ -84,7 +84,6 @@ async function checkAI() {
     } catch { useAI = false; }
 }
 checkAI();
-buildTicker();
 
 // ===== דמות =====
 function setBibiMood(mood) {
@@ -141,18 +140,14 @@ function stopLoadingLines() {
 // ===== מדדים =====
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-function resetMeters() {
+function revealMeters() {
     meters.classList.remove('hidden');
-    pressureFill.style.width = '0%';
-    pressureValue.textContent = '0%';
-    statFill.style.width = '0%';
-    statValue.textContent = '0%';
 }
 
-function updateMeters(question, mood) {
-    const pressure = calculatePressure(question);
-    pressureFill.style.width = `${pressure}%`;
-    pressureValue.textContent = `${pressure}%`;
+function updateMeters(mood) {
+    // מד הלחץ משקף את המתח המצטבר
+    pressureFill.style.width = `${stress}%`;
+    pressureValue.textContent = `${stress}%`;
 
     // מד מתחלף — לחוסר צפיות
     const stats = ['ספין', 'התחמקות', 'אמינות'];
@@ -167,20 +162,24 @@ function updateMeters(question, mood) {
     statFill.style.width = `${value}%`;
     statValue.textContent = `${value}%`;
 
-    applyBreakdown(pressure);
-    if (pressure >= 90) unlock('pressure');
-    return pressure;
+    applyBreakdown(stress);
+    setPanic(stress);
+    if (stress >= 90) unlock('pressure');
 }
 
-// ===== קריסה מתקדמת =====
-function applyBreakdown(pressure) {
-    const intensity = Math.min(99, pressure + (comboCount > 1 ? (comboCount - 1) * 8 : 0));
+// ===== קריסה מתקדמת — נגזרת מהמתח המצטבר =====
+function applyBreakdown(intensity) {
     document.body.classList.remove('bd-1', 'bd-2', 'bd-3');
     if (intensity >= 88) document.body.classList.add('bd-3');
-    else if (intensity >= 70) document.body.classList.add('bd-2');
-    else if (intensity >= 48) document.body.classList.add('bd-1');
+    else if (intensity >= 68) document.body.classList.add('bd-2');
+    else if (intensity >= 45) document.body.classList.add('bd-1');
 }
-function clearBreakdown() { document.body.classList.remove('bd-1', 'bd-2', 'bd-3'); }
+
+// ===== מצב פאניקה =====
+function setPanic(intensity) {
+    if (intensity >= 68) panicBadge.classList.remove('hidden');
+    else panicBadge.classList.add('hidden');
+}
 
 // ===== קומבו =====
 function showCombo(n) {
@@ -202,12 +201,21 @@ function triggerBreaking(question) {
     setTimeout(() => breaking.classList.add('hidden'), 3500);
 }
 
-// ===== טיקר =====
-function buildTicker() {
-    const items = [...TICKER_HEADLINES, ...TICKER_HEADLINES];
-    tickerTrack.innerHTML = items.map(h => `<span>🔴 ${h}</span>`).join('');
+// ===== מד מתח מצטבר (לב ההסלמה) =====
+// שאלה נפיצה → קפיצה לפאניקה ונשארת. רגילה → מתקרר לאט.
+function applyStress(question) {
+    const p = calculatePressure(question);
+    if (isDanger(question)) {
+        stress = Math.min(100, Math.max(stress, 50) + 28);   // ישר לפאניקה
+    } else if (p >= 55) {
+        stress = Math.min(100, stress + 22 + (comboCount > 1 ? (comboCount - 1) * 6 : 0));
+    } else if (p >= 35) {
+        stress = Math.min(100, stress + 10);
+    } else {
+        stress = Math.max(0, Math.round(stress * 0.6) - 4);  // מתקרר
+    }
+    return stress;
 }
-function showTicker() { ticker.classList.remove('hidden'); }
 
 // ===== הישגים =====
 function unlock(id) {
@@ -308,7 +316,6 @@ async function ask() {
     currentQuestion = question;
     askBtn.disabled = true;
     actions.classList.add('hidden');
-    showTicker();
 
     totalQuestions++;
     if (totalQuestions === 1) unlock('first');
@@ -324,6 +331,9 @@ async function ask() {
         hideCombo();
     }
 
+    // עדכון המתח המצטבר (נפיץ → קופץ ונשאר; רגיל → מתקרר)
+    applyStress(question);
+
     // Breaking news למילות סכנה
     if (isDanger(question)) { unlock('danger'); triggerBreaking(question); }
 
@@ -335,7 +345,7 @@ async function ask() {
     }
 
     // זרימה רגילה
-    resetMeters();
+    revealMeters();
     hideBubble();
     setBibiMood('thinking');
     startLoadingLines();
@@ -347,7 +357,7 @@ async function ask() {
     setBibiMood(answer.m);
     await wait(700);
     showBubble(answer.t);
-    updateMeters(question, answer.m);
+    updateMeters(answer.m);
 
     actions.classList.remove('hidden');
     askBtn.disabled = false;
@@ -366,7 +376,7 @@ async function another() {
     setBibiMood(answer.m);
     await wait(500);
     showBubble(answer.t);
-    updateMeters(currentQuestion, answer.m);
+    updateMeters(answer.m);
 
     anotherBtn.disabled = false;
 }
