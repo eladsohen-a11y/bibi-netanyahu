@@ -530,3 +530,149 @@ body.bd-3 #bibi { transform: scale(1.15); }
     .achievement-text { font-size: 14px; }
     .sys-msg { font-size: 18px; }
 }
+
+/* ============ שכבת המשחק (מסכים) ============ */
+
+.screen { width: 100%; }
+
+/* === מסך פתיחה === */
+.title.big { font-size: clamp(34px, 6.5vw, 56px); margin-bottom: 18px; line-height: 1.1; }
+.mission {
+    background: white;
+    border: 3px solid #1a1a1a;
+    border-radius: 18px;
+    padding: 22px 24px;
+    margin: 20px auto 24px;
+    max-width: 540px;
+    text-align: center;
+    box-shadow: 6px 6px 0 rgba(0,0,0,0.15);
+}
+.mission p { font-size: 17px; margin: 8px 0; line-height: 1.5; }
+.best {
+    margin-top: 14px !important;
+    padding-top: 12px;
+    border-top: 1px dashed #c8ced4;
+    font-size: 15px;
+    font-weight: 700;
+    color: #cc0000;
+}
+.cta {
+    background: #cc0000;
+    color: white;
+    border: 3px solid #1a1a1a;
+    border-radius: 14px;
+    padding: 16px 32px;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+}
+.cta:hover { box-shadow: 6px 6px 0 #1a1a1a; transform: translate(-3px, -3px); }
+.cta:active { transform: translate(0, 0); box-shadow: none; }
+
+/* === HUD משחק === */
+.hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1a1a1a;
+    color: white;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-weight: 900;
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+.hud-spacer { flex: 1; }
+.hud-q { color: #facc15; }
+
+.big-meter {
+    width: 100%;
+    height: 18px !important;
+    margin-bottom: 16px;
+}
+
+/* === Play actions === */
+.play-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+/* === טוסט פידבק "+X לחץ" === */
+.feedback-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.7);
+    z-index: 65;
+    background: #1a1a1a;
+    color: white;
+    border: 3px solid #cc0000;
+    border-radius: 14px;
+    padding: 18px 28px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(.5,1.8,.5,1);
+    pointer-events: none;
+    min-width: 220px;
+}
+.feedback-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.feedback-toast.negative { border-color: #16a34a; }
+.feedback-delta { display: block; font-size: 38px; font-weight: 900; color: #ef4444; line-height: 1; }
+.feedback-toast.negative .feedback-delta { color: #4ade80; }
+.feedback-label { display: block; font-size: 14px; margin-top: 6px; opacity: 0.9; }
+
+/* === מסך סיום === */
+.end-card {
+    background: white;
+    border: 3px solid #1a1a1a;
+    border-radius: 22px;
+    padding: 30px 28px;
+    text-align: center;
+    max-width: 540px;
+    margin: 10px auto;
+    box-shadow: 8px 8px 0 rgba(0,0,0,0.18);
+}
+.end-icon { font-size: 64px; line-height: 1; }
+.end-rank {
+    font-size: 30px;
+    font-weight: 900;
+    margin: 8px 0 4px;
+    letter-spacing: -0.5px;
+}
+.end-headline { font-size: 16px; color: #555; margin-bottom: 20px; }
+.end-stats {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 14px 0 18px;
+}
+.end-stat {
+    background: #f5f7fa;
+    border: 2px solid #1a1a1a;
+    border-radius: 12px;
+    padding: 12px 18px;
+    min-width: 110px;
+}
+.end-stat-label { display: block; font-size: 12px; font-weight: 700; color: #555; }
+.end-stat-value { display: block; font-size: 26px; font-weight: 900; margin-top: 4px; }
+.end-best { font-size: 14px; color: #cc0000; font-weight: 700; margin: 8px 0 16px; min-height: 1.2em; }
+.end-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+    .mission { padding: 18px 18px; }
+    .mission p { font-size: 15px; }
+    .cta { padding: 14px 24px; font-size: 17px; }
+    .end-card { padding: 22px 18px; }
+    .end-rank { font-size: 24px; }
+    .end-stat { padding: 10px 14px; min-width: 95px; }
+    .end-stat-value { font-size: 22px; }
+    .hud { font-size: 13px; padding: 8px 12px; }
+    .feedback-toast { min-width: 180px; padding: 14px 20px; }
+    .feedback-delta { font-size: 32px; }
+}

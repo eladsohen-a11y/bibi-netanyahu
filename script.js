@@ -4,16 +4,12 @@ const bubble = document.getElementById('speech-bubble');
 const answerText = document.getElementById('answer-text');
 const questionInput = document.getElementById('question');
 const askBtn = document.getElementById('ask-btn');
-const actions = document.getElementById('actions');
 const anotherBtn = document.getElementById('another-btn');
 const copyBtn = document.getElementById('copy-btn');
-const whatsappBtn = document.getElementById('whatsapp-btn');
-const meters = document.getElementById('meters');
+const cardBtn = document.getElementById('card-btn');
 const pressureFill = document.getElementById('pressure-fill');
 const pressureValue = document.getElementById('pressure-value');
-const statLabel = document.getElementById('stat-label');
-const statFill = document.getElementById('stat-fill');
-const statValue = document.getElementById('stat-value');
+const qCounter = document.getElementById('q-counter');
 const loadingLine = document.getElementById('loading-line');
 const comboEl = document.getElementById('combo');
 const breaking = document.getElementById('breaking');
@@ -24,6 +20,22 @@ const achievementIcon = document.getElementById('achievement-icon');
 const achievementText = document.getElementById('achievement-text');
 const fx = document.getElementById('fx-overlay');
 const bibiContainer = document.querySelector('.bibi-container');
+const screenStart = document.getElementById('screen-start');
+const screenPlay = document.getElementById('screen-play');
+const screenEnd = document.getElementById('screen-end');
+const startBtn = document.getElementById('start-btn');
+const retryBtn = document.getElementById('retry-btn');
+const shareBtn = document.getElementById('share-btn');
+const bestLine = document.getElementById('best-line');
+const feedbackToast = document.getElementById('feedback-toast');
+const feedbackDelta = document.getElementById('feedback-delta');
+const feedbackLabel = document.getElementById('feedback-label');
+const endIcon = document.getElementById('end-icon');
+const endRank = document.getElementById('end-rank');
+const endHeadline = document.getElementById('end-headline');
+const endStress = document.getElementById('end-stress');
+const endQuestions = document.getElementById('end-questions');
+const endBest = document.getElementById('end-best');
 
 // ===== מיפוי הבעות =====
 const MOOD_IMAGES = {
@@ -35,19 +47,18 @@ const MOOD_IMAGES = {
 const SPIN_MOODS = ['dodging', 'sly', 'accusing', 'suspicious', 'defiant', 'angry'];
 
 // ===== נתוני משחק =====
-// רגיש — ביבי מתמודד בקור רוח ועקיצה. לא פאניקה. מעלה מתח מעט.
+const MAX_Q = 5;
+
 const SENSITIVE_KEYWORDS = [
     'משפט', 'תיק', 'שוחד', 'חקירה', 'פרקליטות', 'היועצת', 'אישומים', 'עדות',
     'סיגר', 'שמפניה', 'שמפניות', 'מתנות', 'צוללות', 'הדלפה', 'גלנט',
     'תקשורת', 'ערוץ', 'קואליציה', 'חרדים', 'גיוס', 'בן גביר', 'סמוטריץ',
     'בחירות', 'סקרים', 'יוקר', 'מחירים', 'דיור',
 ];
-// כואב באמת — רק אלה (וחפירה חוזרת) באמת סודקים אותו.
 const DEVASTATING_KEYWORDS = [
     'מחדל', '7 באוקטובר', 'שביעי באוקטובר', 'חטופים', 'משפחות החטופים',
     'כישלון', 'נכשל', 'אשם', 'אחריות', 'אחראי', 'תפטר', 'שרה', 'יאיר',
 ];
-// מילים נסתרות — תגובת Breaking מותאמת (יוצר חקירה: "מה יקרה אם אכתוב X?")
 const HIDDEN_KEYWORDS = [
     { k: 'צוללות', text: 'פרשת הצוללות שוב בכותרות' },
     { k: 'שמפניה', text: 'מתנות יוקרה? אין כאן כלום' },
@@ -65,14 +76,22 @@ const LOADING_LINES = [
     'מחפש את מי להאשים', 'מחשב רמת ספין אופטימלית', 'מתכונן להתחמק',
 ];
 
-const TICKER_HEADLINES = [
-    'מקורות בלשכה: הכל בשליטה, ממש כמו תמיד',
-    'סקר חדש: 100% מהיועצים מסכימים עם עצמם',
-    'בהול: ראש הממשלה גילה מילה חדשה להתחמק איתה',
-    'פרשנים: רמת הספין הגיעה לשיא חדש בהיסטוריה',
-    'בלעדי: מישהו שאל שאלה ישירה — הלשכה בהלם',
-    'דיווח: העניבה התכלת דורשת ועדת חקירה',
-    'מהשטח: השמאל שוב אשם במשהו, פרטים בהמשך',
+const QUESTION_CARDS = [
+    'מה הדבר היחיד שלא היית רוצה שישאלו אותך עכשיו?',
+    'מי באמת אשם במחדל של 7 באוקטובר?',
+    'תגיד כן או לא: אתה מתכוון להתפטר?',
+    'מה אמרת לשרה אחרי הריאיון האחרון?',
+    'מתי בפעם האחרונה הודית בטעות?',
+    'אם תפסיד בבחירות הבאות — מה תעשה ביום שאחרי?',
+    'מי בקואליציה אומר לך כן כל הזמן ופוחד להגיד לך לא?',
+    'אתה ישן בלילה?',
+    'כמה זה עולה לך — באמת — הסיגרים והשמפניות?',
+    'מה היה עושה רבין על המחדל?',
+    'אם היית מתחיל מחדש — מה היית עושה אחרת?',
+    'מה תגיד למשפחות החטופים בלי טקסטים מוכנים?',
+    'מי הקואליציה משרתת — אותך או את המדינה?',
+    'תאר בכנות יום אחד מהקדנציה הזאת בלי לאשים אף אחד.',
+    'אם איראן הייתה תוקפת מחר — האם אתה באמת מוכן?',
 ];
 
 const ACHIEVEMENTS = {
@@ -81,20 +100,27 @@ const ACHIEVEMENTS = {
     pressure:  { icon: '🔥', text: 'העלית את הלחץ למקסימום' },
     combo3:    { icon: '😱', text: 'קומבו x3 — לחצת אותו ברצף' },
     rare:      { icon: '🎲', text: 'גרמת לאירוע נדיר' },
-    veteran:   { icon: '📺', text: 'כתב מנוסה — 10 שאלות' },
+    victory:   { icon: '💥', text: 'הוצאת אותו מהכלים!' },
 };
 
 // ===== מצב =====
+let gameState = 'start';    // 'start' | 'play' | 'end'
+let roundQ = 0;
+let stress = 0;
+let comboCount = 0;
+let totalQuestionsLifetime = 0;
 let currentText = '';
 let currentQuestion = '';
 let typingTimeout = null;
 let loadingTimer = null;
 let useAI = true;
-let comboCount = 0;
-let totalQuestions = 0;
-let stress = 0;            // מד מתח מצטבר — זוכר את ההיסטוריה
 const history = [];
+
 const unlocked = new Set(JSON.parse(localStorage.getItem('bibi_achievements') || '[]'));
+const bestRecord = {
+    questionsToBreak: parseInt(localStorage.getItem('bibi_best_break') || '0', 10) || null,
+    bestPercent: parseInt(localStorage.getItem('bibi_best_percent') || '0', 10) || 0,
+};
 
 // ===== זיהוי AI =====
 async function checkAI() {
@@ -106,6 +132,96 @@ async function checkAI() {
     } catch { useAI = false; }
 }
 checkAI();
+updateBestLine();
+showScreen('start');
+
+// ===== ניהול מסכים =====
+function showScreen(name) {
+    gameState = name;
+    screenStart.classList.toggle('hidden', name !== 'start');
+    screenPlay.classList.toggle('hidden', name !== 'play');
+    screenEnd.classList.toggle('hidden', name !== 'end');
+}
+
+function updateBestLine() {
+    if (bestRecord.questionsToBreak) {
+        bestLine.textContent = `🏆 השיא שלך: שברת אותו תוך ${bestRecord.questionsToBreak} שאלות`;
+        bestLine.classList.remove('hidden');
+    } else if (bestRecord.bestPercent > 0) {
+        bestLine.textContent = `🎯 השיא שלך: ${bestRecord.bestPercent}% לחץ`;
+        bestLine.classList.remove('hidden');
+    } else {
+        bestLine.classList.add('hidden');
+    }
+}
+
+// ===== התחלה/אתחול === ==
+function startGame() {
+    roundQ = 0;
+    stress = 0;
+    comboCount = 0;
+    currentText = '';
+    currentQuestion = '';
+    history.length = 0;
+    document.body.classList.remove('bd-1', 'bd-2', 'bd-3');
+    panicBadge.classList.add('hidden');
+    breaking.classList.add('hidden');
+    comboEl.classList.add('hidden');
+    anotherBtn.classList.add('hidden');
+    copyBtn.classList.add('hidden');
+    pressureFill.style.width = '0%';
+    pressureValue.textContent = '0%';
+    qCounter.textContent = '1';
+    questionInput.value = '';
+    if (typingTimeout) clearTimeout(typingTimeout);
+    answerText.textContent = '';
+    bubble.classList.add('hidden');
+    bubble.classList.remove('visible');
+    setBibiMood('idle');
+    showScreen('play');
+    setTimeout(() => questionInput.focus(), 50);
+}
+
+// ===== סיום סיבוב =====
+function endGame() {
+    const broke = stress >= 100;
+    const r = rankFromResult(stress, roundQ, broke);
+
+    // עדכון שיא
+    let newBest = false;
+    if (broke && (!bestRecord.questionsToBreak || roundQ < bestRecord.questionsToBreak)) {
+        bestRecord.questionsToBreak = roundQ;
+        localStorage.setItem('bibi_best_break', String(roundQ));
+        newBest = true;
+    }
+    if (stress > bestRecord.bestPercent) {
+        bestRecord.bestPercent = stress;
+        localStorage.setItem('bibi_best_percent', String(stress));
+        if (!broke) newBest = true;
+    }
+
+    endIcon.textContent = r.icon;
+    endRank.textContent = r.name;
+    endHeadline.textContent = r.headline;
+    endStress.textContent = `${stress}%`;
+    endQuestions.textContent = String(roundQ);
+    endBest.textContent = newBest ? '🏆 שיא חדש שלך!' :
+        (bestRecord.questionsToBreak ? `השיא שלך: ${bestRecord.questionsToBreak} שאלות` :
+         bestRecord.bestPercent ? `השיא שלך: ${bestRecord.bestPercent}% לחץ` : '');
+
+    if (broke) unlock('victory');
+
+    updateBestLine();
+    showScreen('end');
+}
+
+function rankFromResult(s, qs, broke) {
+    if (broke) return { icon: '💥', name: 'שובר ספינים מוסמך', headline: `הוצאת אותו מהכלים תוך ${qs} שאלות!` };
+    if (s >= 76) return { icon: '🔥', name: 'איום תקשורתי', headline: 'כמעט שברת אותו — הוא בקושי החזיק' };
+    if (s >= 51) return { icon: '💧', name: 'חוקר בוועדה', headline: 'התחיל להזיע — הצלחה ניכרת' };
+    if (s >= 26) return { icon: '🎙️', name: 'עיתונאי אולפן', headline: 'שאלות לא רעות, אבל הוא שלט בבמה' };
+    return { icon: '📰', name: 'כתב מקומי', headline: 'הוא יצא יבש לגמרי. תחזור עם שאלות חזקות יותר.' };
+}
 
 // ===== דמות =====
 function setBibiMood(mood) {
@@ -144,7 +260,7 @@ function typewriter(text, element) {
     tick();
 }
 
-// ===== שורות טעינה מצחיקות =====
+// ===== שורות טעינה =====
 function startLoadingLines() {
     loadingLine.classList.remove('hidden');
     let idx = Math.floor(Math.random() * LOADING_LINES.length);
@@ -159,37 +275,35 @@ function stopLoadingLines() {
     loadingLine.classList.add('hidden');
 }
 
-// ===== מדדים =====
+// ===== מתח מצטבר =====
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-function revealMeters() {
-    meters.classList.remove('hidden');
+function applyStress(question) {
+    const p = calculatePressure(question);
+    const comboBonus = comboCount > 1 ? (comboCount - 1) * 6 : 0;
+    let delta = null, label = '';
+    if (isDevastating(question)) { delta = 20 + comboBonus; label = 'פגיעה ישירה'; }
+    else if (isSensitive(question)) { delta = 11 + comboBonus; label = 'שאלה רגישה'; }
+    else if (p >= 55) { delta = 9 + comboBonus; label = 'שאלה קשה'; }
+    else if (p >= 35) { delta = 5; label = 'שאלה מסקרנת'; }
+
+    const before = stress;
+    if (delta === null) {
+        stress = Math.max(0, Math.round(stress * 0.7) - 5);
+        return { delta: stress - before, label: 'התרככת — חזר לשליטה' };
+    }
+    stress = Math.min(100, stress + delta);
+    return { delta: stress - before, label };
 }
 
-function updateMeters(mood) {
-    // מד הלחץ משקף את המתח המצטבר
+function updateMeter(mood) {
     pressureFill.style.width = `${stress}%`;
     pressureValue.textContent = `${stress}%`;
-
-    // מד מתחלף — לחוסר צפיות
-    const stats = ['ספין', 'התחמקות', 'אמינות'];
-    const label = stats[Math.floor(Math.random() * stats.length)];
-    let value;
-    if (label === 'אמינות') {
-        value = SPIN_MOODS.includes(mood) ? rand(8, 28) : (mood === 'answering' ? rand(30, 48) : rand(18, 38));
-    } else {
-        value = SPIN_MOODS.includes(mood) ? rand(78, 97) : (mood === 'answering' ? rand(45, 65) : rand(60, 82));
-    }
-    statLabel.textContent = label;
-    statFill.style.width = `${value}%`;
-    statValue.textContent = `${value}%`;
-
     applyBreakdown(stress);
     setPanic(stress);
     if (stress >= 90) unlock('pressure');
 }
 
-// ===== קריסה מתקדמת — נגזרת מהמתח המצטבר =====
 function applyBreakdown(intensity) {
     document.body.classList.remove('bd-1', 'bd-2', 'bd-3');
     if (intensity >= 88) document.body.classList.add('bd-3');
@@ -197,7 +311,6 @@ function applyBreakdown(intensity) {
     else if (intensity >= 45) document.body.classList.add('bd-1');
 }
 
-// ===== מצב פאניקה =====
 function setPanic(intensity) {
     if (intensity >= 68) panicBadge.classList.remove('hidden');
     else panicBadge.classList.add('hidden');
@@ -221,27 +334,23 @@ function showBreaking(text) {
     breaking.classList.remove('hidden');
     redpulse();
     clearTimeout(breakingTimer);
-    breakingTimer = setTimeout(() => breaking.classList.add('hidden'), 3500);
+    breakingTimer = setTimeout(() => breaking.classList.add('hidden'), 3200);
 }
 
-// ===== מד מתח מצטבר (לב ההסלמה) =====
-// ביבי תותח עם קור רוח: רגיש → עולה מעט, נשאר רגוע. רק נושא כואב או
-// חפירה בלתי פוסקת מסלימים לפאניקה. שאלה רגילה → מתקרר.
-function applyStress(question) {
-    const p = calculatePressure(question);
-    const comboBonus = comboCount > 1 ? (comboCount - 1) * 6 : 0;
-    let delta = null;
-    if (isDevastating(question)) delta = 20 + comboBonus;   // כואב — אבל לוקח כמה כאלה לשבור
-    else if (isSensitive(question)) delta = 11 + comboBonus; // רגיש — נשאר בשליטה
-    else if (p >= 55) delta = 9 + comboBonus;
-    else if (p >= 35) delta = 5;
-
-    if (delta === null) {
-        stress = Math.max(0, Math.round(stress * 0.7) - 5);  // מתקרר מהר כשמרפים
-    } else {
-        stress = Math.min(100, stress + delta);
-    }
-    return stress;
+// ===== טוסט פידבק =====
+let feedbackTimer = null;
+function showFeedback(delta, label) {
+    const positive = delta > 0;
+    feedbackDelta.textContent = (positive ? '+' : '') + delta + ' לחץ';
+    feedbackLabel.textContent = label;
+    feedbackToast.classList.toggle('negative', !positive);
+    feedbackToast.classList.remove('hidden');
+    requestAnimationFrame(() => feedbackToast.classList.add('show'));
+    clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => {
+        feedbackToast.classList.remove('show');
+        setTimeout(() => feedbackToast.classList.add('hidden'), 250);
+    }, 1500);
 }
 
 // ===== הישגים =====
@@ -277,36 +386,25 @@ function sysMsg(text, ms) {
 async function playRareEvent() {
     unlock('rare');
     hideBubble();
-    actions.classList.add('hidden');
     const type = ['glitch', 'micoff', 'disconnect', 'blackout', 'nocomment'][rand(0, 4)];
-
-    if (type === 'glitch') {
-        glitchBibi();
-        await sysMsg('⚠ מערכת הספינים קרסה', 1800);
-        setBibiMood('idle');
-    } else if (type === 'micoff') {
-        await sysMsg('🎤 המיקרופון נכבה... במקרה', 2000);
-        setBibiMood('suspicious');
-    } else if (type === 'disconnect') {
-        glitchBibi();
-        await sysMsg('📡 החיבור נותק', 2000);
-        setBibiMood('idle');
-    } else if (type === 'blackout') {
+    if (type === 'glitch') { glitchBibi(); await sysMsg('⚠ מערכת הספינים קרסה', 1800); setBibiMood('idle'); }
+    else if (type === 'micoff') { await sysMsg('🎤 המיקרופון נכבה... במקרה', 2000); setBibiMood('suspicious'); }
+    else if (type === 'disconnect') { glitchBibi(); await sysMsg('📡 החיבור נותק', 2000); setBibiMood('idle'); }
+    else if (type === 'blackout') {
         fx.className = 'blackout';
         await new Promise(r => setTimeout(r, 1200));
         fx.className = '';
         await sysMsg('💡 האורות חזרו... איפה היינו?', 1600);
         setBibiMood('nervous-smile');
-    } else { // nocomment — רגע "כן" נדיר
+    } else {
         setBibiMood('nervous-smile');
         currentText = 'אין לי תגובה כרגע.';
         await wait(600);
         showBubble(currentText);
-        actions.classList.remove('hidden');
     }
 }
 
-// ===== קבלת תשובה (AI / סטטי) =====
+// ===== קבלת תשובה =====
 async function fetchAnswer(question, { another = false } = {}) {
     if (!useAI) await checkAI();
     if (useAI) {
@@ -342,14 +440,15 @@ function isHard(q) { return calculatePressure(q) >= 50 || isDanger(q); }
 function findHidden(q) { return HIDDEN_KEYWORDS.find(h => q.includes(h.k)); }
 
 async function ask() {
+    if (gameState !== 'play') return;
     const question = questionInput.value;
     currentQuestion = question;
     askBtn.disabled = true;
-    actions.classList.add('hidden');
+    anotherBtn.classList.add('hidden');
+    copyBtn.classList.add('hidden');
 
-    totalQuestions++;
-    if (totalQuestions === 1) unlock('first');
-    if (totalQuestions === 10) unlock('veteran');
+    totalQuestionsLifetime++;
+    if (totalQuestionsLifetime === 1) unlock('first');
 
     // קומבו
     if (isHard(question)) {
@@ -361,11 +460,11 @@ async function ask() {
         hideCombo();
     }
 
-    // עדכון המתח המצטבר
+    // עדכון המתח המצטבר (מחזיר delta + label לפידבק)
     const prevStress = stress;
-    applyStress(question);
+    const stressResult = applyStress(question);
 
-    // Breaking News — במינון: מילה נסתרת / נושא כואב / חציית סף פאניקה
+    // Breaking News (במינון)
     const hidden = findHidden(question);
     if (isDanger(question)) unlock('danger');
     if (hidden) showBreaking(hidden.text);
@@ -375,12 +474,15 @@ async function ask() {
     // אירוע נדיר (1 ל-15)
     if (Math.random() < 1 / 15) {
         await playRareEvent();
+        roundQ++;
+        qCounter.textContent = String(Math.min(roundQ + 1, MAX_Q));
         askBtn.disabled = false;
+        questionInput.value = '';
+        if (stress >= 100 || roundQ >= MAX_Q) setTimeout(endGame, 800);
         return;
     }
 
     // זרימה רגילה
-    revealMeters();
     hideBubble();
     setBibiMood('thinking');
     startLoadingLines();
@@ -390,15 +492,27 @@ async function ask() {
     stopLoadingLines();
     currentText = answer.t;
     setBibiMood(answer.m);
-    await wait(700);
+    await wait(600);
     showBubble(answer.t);
-    updateMeters(answer.m);
+    updateMeter(answer.m);
+    showFeedback(stressResult.delta, stressResult.label);
 
-    actions.classList.remove('hidden');
+    anotherBtn.classList.remove('hidden');
+    copyBtn.classList.remove('hidden');
+
+    roundQ++;
+    qCounter.textContent = String(Math.min(roundQ + 1, MAX_Q));
+    questionInput.value = '';
     askBtn.disabled = false;
+
+    if (stress >= 100 || roundQ >= MAX_Q) {
+        // לתת לבועה זמן להופיע לפני המעבר
+        setTimeout(endGame, 2200);
+    }
 }
 
 async function another() {
+    if (gameState !== 'play') return;
     anotherBtn.disabled = true;
     hideBubble();
     setBibiMood('thinking');
@@ -411,9 +525,16 @@ async function another() {
     setBibiMood(answer.m);
     await wait(500);
     showBubble(answer.t);
-    updateMeters(answer.m);
+    updateMeter(answer.m);
 
     anotherBtn.disabled = false;
+}
+
+// ===== קלף שאלה =====
+function pickCard() {
+    const card = QUESTION_CARDS[Math.floor(Math.random() * QUESTION_CARDS.length)];
+    questionInput.value = card;
+    questionInput.focus();
 }
 
 // ===== פעולות =====
@@ -428,17 +549,21 @@ function flashButton(btn, text) {
     setTimeout(() => btn.textContent = original, 1500);
 }
 function buildShareText() {
-    const q = currentQuestion.trim() || 'שאלה';
-    return `שאלתי את ביבי: "${q}"\n\nוהוא ענה:\n"${currentText}"\n\nנסו גם אתם 👇`;
+    const broke = stress >= 100;
+    if (broke) return `שברתי את ביבי תוך ${roundQ} שאלות! 💥\n\nתצליחו יותר טוב? נסו גם אתם 👇`;
+    return `הגעתי ל-${stress}% לחץ ב-${roundQ} שאלות.\n\nתצליחו להוציא את ביבי מהכלים? 👇`;
 }
-function shareWhatsApp() {
+function shareEnd() {
     window.open(`https://wa.me/?text=${encodeURIComponent(buildShareText())}`, '_blank');
 }
 function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 // ===== אירועים =====
+startBtn.addEventListener('click', startGame);
+retryBtn.addEventListener('click', startGame);
+shareBtn.addEventListener('click', shareEnd);
+cardBtn.addEventListener('click', pickCard);
 askBtn.addEventListener('click', ask);
 anotherBtn.addEventListener('click', another);
 copyBtn.addEventListener('click', copyAnswer);
-whatsappBtn.addEventListener('click', shareWhatsApp);
 questionInput.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });

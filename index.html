@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מה ביבי היה אומר?</title>
+    <title>תצליחו להוציא אותו מהכלים?</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- שכבת אפקטים על כל המסך (פלאש, גליץ', אדום, blackout) -->
+    <!-- שכבת אפקטים על כל המסך -->
     <div id="fx-overlay"></div>
 
     <!-- באנר חדשות דחופות -->
@@ -20,47 +20,80 @@
     </div>
 
     <main class="stage">
-        <h1 class="title">מה ביבי היה אומר?</h1>
 
-        <div class="bibi-container">
-            <div id="speech-bubble" class="speech-bubble hidden">
-                <p id="answer-text"></p>
+        <!-- ===== מסך פתיחה ===== -->
+        <section id="screen-start" class="screen">
+            <h1 class="title big">תצליחו להוציא אותו מהכלים?</h1>
+            <div class="mission">
+                <p>הוא הפוליטיקאי הטוב בכל הזמנים — שחקן עם עצבי ברזל.</p>
+                <p><strong>יש לכם 5 שאלות.</strong> כל שאלה מעלה (או מורידה) את מד הלחץ.<br>
+                ב-100% הוא נשבר. <em>כמה שאלות ייקחו לכם?</em></p>
+                <p id="best-line" class="best hidden"></p>
             </div>
-            <img id="bibi" src="images/bibi-idle.png" alt="ביבי">
-            <div id="loading-line" class="loading-line hidden"></div>
-            <div id="combo" class="combo hidden"></div>
-            <div id="panic-badge" class="panic-badge hidden">🔴 מצב פאניקה</div>
-        </div>
+            <button id="start-btn" class="cta">התחילו את האתגר</button>
+        </section>
 
-        <div id="meters" class="meters hidden">
-            <div class="meter">
-                <span class="meter-label">רמת לחץ</span>
-                <div class="meter-bar"><div class="meter-fill" id="pressure-fill"></div></div>
-                <span class="meter-value" id="pressure-value">0%</span>
+        <!-- ===== מסך המשחק ===== -->
+        <section id="screen-play" class="screen hidden">
+            <div class="hud">
+                <span class="hud-q">שאלה <span id="q-counter">1</span>/5</span>
+                <span class="hud-spacer"></span>
+                <span class="hud-stress">רמת לחץ: <span id="pressure-value">0%</span></span>
             </div>
-            <div class="meter">
-                <span class="meter-label" id="stat-label">ספין</span>
-                <div class="meter-bar"><div class="meter-fill stat" id="stat-fill"></div></div>
-                <span class="meter-value" id="stat-value">0%</span>
+            <div class="meter-bar big-meter"><div class="meter-fill" id="pressure-fill"></div></div>
+
+            <div class="bibi-container">
+                <div id="speech-bubble" class="speech-bubble hidden">
+                    <p id="answer-text"></p>
+                </div>
+                <img id="bibi" src="images/bibi-idle.png" alt="ביבי">
+                <div id="loading-line" class="loading-line hidden"></div>
+                <div id="combo" class="combo hidden"></div>
+                <div id="panic-badge" class="panic-badge hidden">🔴 מצב פאניקה</div>
             </div>
-        </div>
 
-        <div class="input-area">
-            <input
-                type="text"
-                id="question"
-                placeholder="כתוב שאלה או נושא... (נסה להפיל אותו)"
-                autocomplete="off"
-            >
-            <button id="ask-btn">שאל את ביבי</button>
-        </div>
+            <div class="input-area">
+                <input
+                    type="text"
+                    id="question"
+                    placeholder="כתוב שאלה שאי אפשר להתחמק ממנה..."
+                    autocomplete="off"
+                >
+                <button id="ask-btn">נסה לשבור אותו</button>
+            </div>
 
-        <div class="actions hidden" id="actions">
-            <button id="another-btn" class="secondary">רוצה תשובה אחרת?</button>
-            <button id="copy-btn" class="secondary">העתק</button>
-            <button id="whatsapp-btn" class="share whatsapp">שתף בוואטסאפ</button>
-        </div>
+            <div class="play-actions">
+                <button id="card-btn" class="secondary">🃏 קלף שאלה</button>
+                <button id="another-btn" class="secondary hidden">רוצה תשובה אחרת?</button>
+                <button id="copy-btn" class="secondary hidden">העתק</button>
+            </div>
+        </section>
+
+        <!-- ===== מסך סיום ===== -->
+        <section id="screen-end" class="screen hidden">
+            <div class="end-card">
+                <div id="end-icon" class="end-icon">🎤</div>
+                <h2 id="end-rank" class="end-rank">כתב מקומי</h2>
+                <div id="end-headline" class="end-headline"></div>
+                <div class="end-stats">
+                    <div class="end-stat"><span class="end-stat-label">רמת לחץ סופית</span><span id="end-stress" class="end-stat-value">0%</span></div>
+                    <div class="end-stat"><span class="end-stat-label">שאלות</span><span id="end-questions" class="end-stat-value">0</span></div>
+                </div>
+                <p id="end-best" class="end-best"></p>
+                <div class="end-buttons">
+                    <button id="retry-btn" class="cta">נסה שוב</button>
+                    <button id="share-btn" class="share whatsapp">שתף תוצאה בוואטסאפ</button>
+                </div>
+            </div>
+        </section>
+
     </main>
+
+    <!-- טוסט פידבק "+X לחץ" -->
+    <div id="feedback-toast" class="feedback-toast hidden">
+        <span id="feedback-delta" class="feedback-delta">+0</span>
+        <span id="feedback-label" class="feedback-label"></span>
+    </div>
 
     <!-- פופ-אפ הישג -->
     <div id="achievement" class="achievement hidden">

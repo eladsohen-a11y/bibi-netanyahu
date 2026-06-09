@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>מה ביבי היה אומר — סיכום פרויקט</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Heebo', 'Segoe UI', sans-serif;
+    color: #1a1a1a;
+    line-height: 1.55;
+    direction: rtl;
+    margin: 0;
+  }
+  h1 { font-size: 38px; margin: 0 0 6px; letter-spacing: -0.5px; }
+  h2 {
+    font-size: 22px;
+    margin: 28px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 3px solid #1a1a1a;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 16px; margin: 18px 0 6px; color: #1a1a1a; }
+  p { margin: 8px 0; font-size: 14px; }
+  ul, ol { margin: 8px 0; padding-right: 22px; }
+  li { font-size: 14px; margin: 3px 0; }
+  code {
+    background: #f1f3f5;
+    border: 1px solid #d9dee4;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    direction: ltr;
+    display: inline-block;
+  }
+  pre {
+    background: #1a1a1a;
+    color: #f1f3f5;
+    padding: 12px 14px;
+    border-radius: 8px;
+    direction: ltr;
+    text-align: left;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 13px;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #d9dee4;
+    padding: 7px 10px;
+    text-align: start;
+    vertical-align: top;
+  }
+  th { background: #1a1a1a; color: white; font-weight: 700; }
+  tr:nth-child(even) td { background: #f8f9fa; }
+  .cover {
+    text-align: center;
+    padding: 40mm 0 30mm;
+    page-break-after: always;
+  }
+  .cover .emoji { font-size: 80px; }
+  .cover h1 { font-size: 48px; margin-top: 10px; }
+  .cover .tagline { font-size: 18px; color: #666; margin-top: 8px; }
+  .cover .meta { margin-top: 30mm; font-size: 13px; color: #666; }
+  .badge {
+    display: inline-block;
+    background: #1a1a1a;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    margin: 0 4px 4px 0;
+  }
+  .badge.green { background: #16a34a; }
+  .badge.amber { background: #d97706; }
+  .badge.red { background: #cc0000; }
+  .note {
+    background: #fff8e1;
+    border-right: 4px solid #f59e0b;
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 13px;
+    page-break-inside: avoid;
+  }
+  .stack {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 10px 0;
+  }
+  .card {
+    border: 2px solid #1a1a1a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    page-break-inside: avoid;
+  }
+  .card h3 { margin-top: 0; }
+  .toc { font-size: 14px; }
+  .toc li { margin: 4px 0; }
+  hr { border: 0; border-top: 1px dashed #c8ced4; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="emoji">🎤</div>
+  <h1>מה ביבי היה אומר?</h1>
+  <div class="tagline">אפליקציית סאטירה אינטראקטיבית עם AI — סיכום פרויקט</div>
+  <div class="meta">
+    מאי 2026<br>
+    גרסת MVP מקומית · מוכן להעלאה לאינטרנט
+  </div>
+</section>
+
+<!-- TOC -->
+<h2>תוכן עניינים</h2>
+<ol class="toc">
+  <li>סקירת הפרויקט</li>
+  <li>ארכיטקטורה ותשתית טכנית</li>
+  <li>מבנה הקבצים</li>
+  <li>שכבת ה-AI (Claude) — איך זה עובד</li>
+  <li>שכבת המשחק הפסיכולוגי</li>
+  <li>כיול האופי וקור הרוח</li>
+  <li>אבטחה והגנות מפני ניצול</li>
+  <li>הפעלת האפליקציה מקומית</li>
+  <li>החלטות עיצוב ומוצר לאורך הדרך</li>
+  <li>שלבים הבאים — העלאה לאינטרנט</li>
+</ol>
+
+<h2>1. סקירת הפרויקט</h2>
+<p><strong>מה זה:</strong> אפליקציית ווב סאטירית שבה המשתמש שואל שאלות ודמותו המאוירת של בנימין נתניהו ("ביבי") עונה בסגנון הרטורי האותנטי שלו — באמצעות AI (Claude). הדמות משנה הבעות פנים בהתאם לטון, מד לחץ ומדדים שונים מטפסים, יש שאלות "אסורות" שמפעילות מצב חירום, ויש תגובות נדירות.</p>
+<p><strong>מטרת המשחק:</strong> המשתמש מנסה "להפיל" את ביבי באמצעות שאלות חודרות יותר ויותר — אבל ביבי תותח עם קור רוח, אז זה לוקח מאמץ. זה יוצר התמכרות: <em>"מה יקרה אם אשאל X?"</em>.</p>
+<p><strong>קהל יעד:</strong> ויראלי — תוצאה ניתנת לשיתוף בוואטסאפ.</p>
+
+<h2>2. ארכיטקטורה ותשתית טכנית</h2>
+<div class="stack">
+  <div class="card">
+    <h3>צד לקוח (דפדפן)</h3>
+    <ul>
+      <li>HTML / CSS / JavaScript טהורים</li>
+      <li>בלי React/Vue/Build — פשוט וקל לתחזוקה</li>
+      <li>פונט Heebo (Google Fonts)</li>
+      <li>תמיכה מלאה ב-RTL ובמובייל</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>שרת (Node.js)</h3>
+    <ul>
+      <li>Express — שרת מינימלי</li>
+      <li>מגיש את האתר + מתווך לקריאות AI</li>
+      <li>שומר על המפתח הסודי</li>
+      <li>אכיפת הגבלות (rate limit + תקרה יומית)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>AI</h3>
+    <ul>
+      <li>Anthropic Claude API</li>
+      <li>SDK רשמי: <code>@anthropic-ai/sdk</code></li>
+      <li>מודל: <code>claude-sonnet-4-6</code> (איכותי)</li>
+      <li>Structured Outputs — JSON תקין מובטח</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>תלויות מינימליות</h3>
+    <ul>
+      <li><code>express</code></li>
+      <li><code>dotenv</code></li>
+      <li><code>express-rate-limit</code></li>
+      <li><code>@anthropic-ai/sdk</code></li>
+    </ul>
+  </div>
+</div>
+<div class="note"><strong>עיקרון מנחה:</strong> בלי overengineering. כל החלטה נבחנה לפי "האם זה תורם לחוויה?". פלאגינים, frameworks ותלויות מיותרות נדחו במכוון.</div>
+
+<h2>3. מבנה הקבצים</h2>
+<pre>
+bibi-app/
+├── index.html              ← מבנה הדף
+├── style.css               ← עיצוב + אנימציות + אפקטים
+├── script.js               ← לוגיקת המשחק והדפדפן
+├── responses.js            ← מאגר תשובות סטטי (fallback)
+├── server.js               ← שרת Express + מתווך Claude
+├── package.json            ← תלויות
+├── .env                    ← המפתח הסודי (לא ב-git)
+├── .env.example            ← דוגמה ללא סודות
+├── .gitignore              ← מוודא שסודות לא מועלים
+├── render.yaml             ← הגדרת פריסה ל-Render
+└── images/                 ← 12 איורי ביבי במצבים שונים
+    ├── bibi-idle.png       (רגוע)
+    ├── bibi-thinking.png   (חושב/מזיע)
+    ├── bibi-answering.png  (עונה עם אצבע)
+    ├── bibi-angry.jpg      (זועם — אש וקיטור)
+    ├── bibi-proud.jpg      (גאה/מתנפח)
+    ├── bibi-sly.jpg        (ערמומי/קורץ)
+    ├── bibi-accusing.jpg   (מאשים — מצביע על השואל)
+    ├── bibi-defiant.jpg    (מתריס — ידיים על המותניים)
+    ├── bibi-dodging.jpg    (מתחמק — פורש ידיים)
+    ├── bibi-emotional.jpg  (רגשני — יד על הלב)
+    ├── bibi-suspicious.jpg (חשדן — מבט עקום)
+    └── bibi-nervous-smile.jpg (חיוך עצבני)
+</pre>
+
+<h2>4. שכבת ה-AI (Claude) — איך זה עובד</h2>
+<h3>הזרימה</h3>
+<ol>
+  <li>המשתמש כותב שאלה ולוחץ "שאל".</li>
+  <li>הדפדפן שולח <code>POST /api/ask</code> עם השאלה + היסטוריית השיחה.</li>
+  <li>השרת בונה הודעות, מוסיף System Prompt (האופי של ביבי), שולח ל-Claude.</li>
+  <li>Claude מחזיר JSON מובנה: <code>{ text, mood }</code>.</li>
+  <li>השרת מחזיר ללקוח; הדפדפן מציג את התשובה ומחליף תמונת ביבי לפי ה-mood.</li>
+</ol>
+
+<h3>זיכרון שיחה</h3>
+<p>הדפדפן שולח את 12 ההודעות האחרונות בכל קריאה — ביבי "זוכר" הקשר, יכול להתייחס למה שנאמר קודם, ואפילו לסתור את עצמו (זהב סאטירי).</p>
+
+<h3>JSON מובטח (Structured Outputs)</h3>
+<p>במקום לסמוך על Claude שיחזיר פורמט נכון, מגדירים סכמה: <code>{text: string, mood: enum}</code>. Claude חייב לציית — אז ההבעה תמיד תקפה ולא תיכשל הפענוח.</p>
+
+<h3>Fallback חכם</h3>
+<p>אם אין מפתח/קרדיט/חיבור — האפליקציה נופלת אוטומטית למאגר תשובות סטטי (<code>responses.js</code>) ולא נשברת. הדפדפן מזהה את מצב השרת דרך <code>GET /api/health</code>.</p>
+
+<h3>שני מודלים</h3>
+<table>
+  <tr><th>מודל</th><th>מאפיין</th><th>עלות לשאלה</th></tr>
+  <tr><td><code>claude-haiku-4-5</code></td><td>מהיר, חסכוני</td><td>~$0.001</td></tr>
+  <tr><td><code>claude-sonnet-4-6</code> (פעיל)</td><td>שנון יותר, סאטירה איכותית</td><td>~$0.004</td></tr>
+</table>
+
+<h2>5. שכבת המשחק הפסיכולוגי</h2>
+<p>הלב של המוצר. כל אחד מהמרכיבים הבאים תורם ל"חוסר צפיות" שגורם להמשך:</p>
+
+<table>
+  <tr><th>מנגנון</th><th>מה הוא עושה</th></tr>
+  <tr><td>🎭 שורות טעינה מצחיקות</td><td>"מתייעץ עם יועצים...", "מנסח תשובה שלא תסתבך משפטית..."</td></tr>
+  <tr><td>📊 שני מדדים</td><td>רמת לחץ (מצטבר) + מד מתחלף (ספין/התחמקות/אמינות)</td></tr>
+  <tr><td>🔥 קומבו</td><td>שאלות קשות ברצף → <code>COMBO x3</code> + "רמת הלחץ עולה"</td></tr>
+  <tr><td>🎢 קריסה מתקדמת</td><td>3 רמות לפי מתח — רקע מאדים, רעד, זום על הפנים</td></tr>
+  <tr><td>🚨 Breaking News</td><td>מילים נסיכון → באנר אדום למעלה + הבהוב</td></tr>
+  <tr><td>🔴 מצב פאניקה</td><td>תווית מתמשכת כשהמתח עובר 68%</td></tr>
+  <tr><td>🕵️ מילים נסתרות</td><td>צוללות / שמפניה / סיגר / הדלפה / שרה — כל אחת עם כותרת Breaking ייחודית</td></tr>
+  <tr><td>🎲 תגובות נדירות (1/15)</td><td>גליץ' / "המיקרופון נכבה" / "החיבור נותק" / blackout / "אין לי תגובה"</td></tr>
+  <tr><td>🏆 הישגים</td><td>פופ-אפ + נשמר במכשיר: ראיון ראשון, לחץ מקסימלי, שאלה אסורה, קומבו x3, אירוע נדיר, כתב מנוסה</td></tr>
+  <tr><td>📲 שיתוף</td><td>וואטסאפ בלחיצה — מנוע ויראלי</td></tr>
+</table>
+
+<h2>6. כיול האופי וקור הרוח</h2>
+<p>נקודה קריטית. ביבי הוא <strong>שחקן ותיק עם עצבי ברזל</strong> — הוא לא נשבר מהר. שאלה רגישה בודדת לא צריכה להעיף אותו לפאניקה.</p>
+
+<h3>שכבת ההוראות (ל-Claude)</h3>
+<p>ה-System Prompt מורה לו במפורש: שלוט, חייך, רד לעקיצה — אבל אל תיכנס לפאניקה משאלה רגישה רגילה. רק התגרות אמיתית או נושא שבאמת כואב יוצרים תגובה רגשית.</p>
+
+<h3>תדירות הבעות פנים</h3>
+<ul>
+  <li><span class="badge green">רוב הזמן</span> answering · sly · proud · defiant · dodging</li>
+  <li><span class="badge amber">לפעמים</span> suspicious · accusing</li>
+  <li><span class="badge red">נדיר</span> angry · nervous-smile · emotional</li>
+</ul>
+
+<h3>שכבת המתח המצטבר (קוד)</h3>
+<table>
+  <tr><th>סוג שאלה</th><th>השפעה על מתח</th><th>דוגמה</th></tr>
+  <tr><td>רגילה</td><td>יורד לאט (מתקרר)</td><td>"מתי ירד גשם?"</td></tr>
+  <tr><td>קשה (לחץ ≥ 55)</td><td>+9</td><td>"מה דעתך על יוקר המחיה?"</td></tr>
+  <tr><td>רגישה (Sensitive)</td><td>+11</td><td>משפט, איראן, תקשורת</td></tr>
+  <tr><td>כואבת (Devastating)</td><td>+20</td><td>מחדל, חטופים, אחריות</td></tr>
+  <tr><td>קומבו (3 ברצף)</td><td>בונוס +6 לכל חזרה</td><td>חפירה בלתי פוסקת</td></tr>
+</table>
+<p>סף פאניקה: 70%. סף קריסה מלאה: 88%. כלומר — צריך כמה שאלות נוקבות ברצף, או חפירה רצינית, כדי באמת לסדוק אותו.</p>
+
+<h2>7. אבטחה והגנות מפני ניצול</h2>
+<table>
+  <tr><th>הגנה</th><th>מה היא עושה</th></tr>
+  <tr><td>קובץ <code>.env</code> + <code>.gitignore</code></td><td>המפתח לעולם לא נחשף ולא עולה ל-git</td></tr>
+  <tr><td><code>dotfiles: ignore</code> בשרת</td><td>גם אם מנסים לגשת ל-<code>/.env</code> מהאינטרנט — 404</td></tr>
+  <tr><td>הגבלה לפי IP</td><td>15 שאלות ל-10 דקות לכל משתמש</td></tr>
+  <tr><td>תקרה יומית גלובלית</td><td>100 שאלות ביום (~$0.40) — מגן על הארנק</td></tr>
+  <tr><td><code>trust proxy</code></td><td>מזהה IP אמיתי גם מאחורי שרת אירוח</td></tr>
+  <tr><td>גודל בקשה מוגבל</td><td>32KB — מונע בקשות ענק</td></tr>
+  <tr><td>נפילה אלגנטית</td><td>אם הוגבל — נופל למאגר סטטי, לא שובר את האפליקציה</td></tr>
+</table>
+
+<h2>8. הפעלת האפליקציה מקומית</h2>
+<ol>
+  <li>פתח את התיקייה <code>C:\Users\pblel\קלוד\bibi-app</code></li>
+  <li>ודא שיש מפתח ב-<code>.env</code> (<code>ANTHROPIC_API_KEY=sk-ant-...</code>)</li>
+  <li>הפעל בטרמינל: <code>node server.js</code></li>
+  <li>פתח בדפדפן: <code>http://localhost:3000</code></li>
+  <li>אם שינית קבצים — Ctrl+Shift+R לרענון קשה</li>
+</ol>
+<div class="note"><strong>חשוב:</strong> ה-AI עובד <em>רק</em> דרך localhost:3000. פתיחת הקובץ ישירות נופלת אוטומטית למצב סטטי.</div>
+
+<h2>9. החלטות עיצוב ומוצר לאורך הדרך</h2>
+<ul>
+  <li><strong>HTML/CSS/JS טהורים</strong> במקום React — פשטות, אפס build, קל לתחזוקה.</li>
+  <li><strong>Node + Express</strong> במקום serverless — שרת אחד מטפל בהכל, פריסה פשוטה.</li>
+  <li><strong>Sonnet ולא Haiku</strong> — האיכות והעוקצנות חשובות יותר מהחיסכון בפרויקט סאטירה.</li>
+  <li><strong>Structured Outputs</strong> במקום פרסור טקסט — אפס תקלות פורמט.</li>
+  <li><strong>Fallback סטטי תמיד פעיל</strong> — אף פעם לא נשבר.</li>
+  <li><strong>שכבת משחק בקוד (לא תמונות נוספות)</strong> — מנוצל את 12 הציורים הקיימים ומוסיף אפקטים בקוד.</li>
+  <li><strong>בלי סאונד</strong> — בעיות autoplay במובייל, יותר נזק מתועלת.</li>
+  <li><strong>טיקר תחתון הוסר</strong> — היה רעש מיותר, פוגע בנקיון העיצוב.</li>
+  <li><strong>כיול קור רוח</strong> — שאלה רגישה ≠ פאניקה. רק חפירה אמיתית סודקת.</li>
+</ul>
+
+<h2>10. שלבים הבאים — העלאה לאינטרנט</h2>
+<ol>
+  <li><strong>מאגר GitHub:</strong> ליצור repo ריק בכתובת <code>github.com/&lt;שם&gt;/bibi-app</code> ולדחוף את הקוד (הקוד כבר מוכן עם git מקומי).</li>
+  <li><strong>פריסה ב-Render:</strong> חשבון חינמי, חיבור ל-GitHub repo. הקובץ <code>render.yaml</code> מגדיר הכל אוטומטית — רק להגדיר את ה-<code>ANTHROPIC_API_KEY</code> בממשק.</li>
+  <li><strong>דומיין (אופציונלי):</strong> חיבור דומיין נחמד דרך Render.</li>
+  <li><strong>תוספות עתידיות אם נרצה:</strong>
+    <ul>
+      <li>תמונות חדשות (שומר ראש, דוכן ריק, פאניקה קיצונית) — המערכת מוכנה לקלוט אותן.</li>
+      <li>"כרטיס שיתוף" — תמונה מעוצבת אוטומטית עם השאלה והתשובה.</li>
+      <li>Modes שונים — ריאיון / מסיבת עיתונאים / חקירה.</li>
+      <li>אנליטיקס — אילו שאלות הכי פופולריות.</li>
+    </ul>
+  </li>
+</ol>
+
+<hr>
+<p style="text-align:center; color:#666; font-size:12px;">סוף המסמך · נוצר אוטומטית מסיכום השיחה</p>
+
+</body>
+</html>
