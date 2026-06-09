@@ -36,6 +36,7 @@ const endHeadline = document.getElementById('end-headline');
 const endStress = document.getElementById('end-stress');
 const endQuestions = document.getElementById('end-questions');
 const endBest = document.getElementById('end-best');
+const endInterviewBtn = document.getElementById('end-interview-btn');
 
 // ===== מיפוי הבעות =====
 const MOOD_IMAGES = {
@@ -47,7 +48,7 @@ const MOOD_IMAGES = {
 const SPIN_MOODS = ['dodging', 'sly', 'accusing', 'suspicious', 'defiant', 'angry'];
 
 // ===== נתוני משחק =====
-const MAX_Q = 5;
+// אין תקרה — ראיון פתוח, הסיום ב-100% מתח או בלחיצה על "סיים את הראיון".
 
 const SENSITIVE_KEYWORDS = [
     'משפט', 'תיק', 'שוחד', 'חקירה', 'פרקליטות', 'היועצת', 'אישומים', 'עדות',
@@ -169,6 +170,7 @@ function startGame() {
     comboEl.classList.add('hidden');
     anotherBtn.classList.add('hidden');
     copyBtn.classList.add('hidden');
+    endInterviewBtn.classList.add('hidden'); // יופיע אחרי שאלה ראשונה
     pressureFill.style.width = '0%';
     pressureValue.textContent = '0%';
     qCounter.textContent = '1';
@@ -447,6 +449,9 @@ async function ask() {
     anotherBtn.classList.add('hidden');
     copyBtn.classList.add('hidden');
 
+    // זיהוי ג'יבריש: יש קלט אבל אין אות עברית אחת
+    const noHeb = question.trim().length > 0 && !/[֐-׿]/.test(question);
+
     totalQuestionsLifetime++;
     if (totalQuestionsLifetime === 1) unlock('first');
 
@@ -463,6 +468,7 @@ async function ask() {
     // עדכון המתח המצטבר (מחזיר delta + label לפידבק)
     const prevStress = stress;
     const stressResult = applyStress(question);
+    if (noHeb) stressResult.label = 'לא בעברית — בזבזת תור';
 
     // Breaking News (במינון)
     const hidden = findHidden(question);
@@ -475,10 +481,10 @@ async function ask() {
     if (Math.random() < 1 / 15) {
         await playRareEvent();
         roundQ++;
-        qCounter.textContent = String(Math.min(roundQ + 1, MAX_Q));
+        qCounter.textContent = String(roundQ + 1);
         askBtn.disabled = false;
         questionInput.value = '';
-        if (stress >= 100 || roundQ >= MAX_Q) setTimeout(endGame, 800);
+        if (stress >= 100) setTimeout(endGame, 800);
         return;
     }
 
@@ -499,13 +505,14 @@ async function ask() {
 
     anotherBtn.classList.remove('hidden');
     copyBtn.classList.remove('hidden');
+    endInterviewBtn.classList.remove('hidden');
 
     roundQ++;
-    qCounter.textContent = String(Math.min(roundQ + 1, MAX_Q));
+    qCounter.textContent = String(roundQ + 1);
     questionInput.value = '';
     askBtn.disabled = false;
 
-    if (stress >= 100 || roundQ >= MAX_Q) {
+    if (stress >= 100) {
         // לתת לבועה זמן להופיע לפני המעבר
         setTimeout(endGame, 2200);
     }
@@ -562,6 +569,7 @@ function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 startBtn.addEventListener('click', startGame);
 retryBtn.addEventListener('click', startGame);
 shareBtn.addEventListener('click', shareEnd);
+endInterviewBtn.addEventListener('click', () => { if (gameState === 'play') endGame(); });
 cardBtn.addEventListener('click', pickCard);
 askBtn.addEventListener('click', ask);
 anotherBtn.addEventListener('click', another);

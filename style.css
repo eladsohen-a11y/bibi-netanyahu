@@ -602,6 +602,16 @@ body.bd-3 #bibi { transform: scale(1.15); }
     margin-top: 12px;
 }
 
+button.end-interview {
+    background: #1a1a1a;
+    color: white;
+    border-color: transparent;
+}
+button.end-interview:hover {
+    box-shadow: 4px 4px 0 rgba(204,0,0,0.5);
+    border-color: #cc0000;
+}
+
 /* === טוסט פידבק "+X לחץ" === */
 .feedback-toast {
     position: fixed;
