@@ -114,7 +114,6 @@ let currentText = '';
 let currentQuestion = '';
 let typingTimeout = null;
 let loadingTimer = null;
-let useAI = true;
 const history = [];
 
 const unlocked = new Set(JSON.parse(localStorage.getItem('bibi_achievements') || '[]'));
@@ -123,16 +122,6 @@ const bestRecord = {
     bestPercent: parseInt(localStorage.getItem('bibi_best_percent') || '0', 10) || 0,
 };
 
-// ===== זיהוי AI =====
-async function checkAI() {
-    try {
-        const res = await fetch('/api/health');
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        useAI = Boolean(data.hasKey);
-    } catch { useAI = false; }
-}
-checkAI();
 updateBestLine();
 showScreen('start');
 
@@ -407,29 +396,39 @@ async function playRareEvent() {
 }
 
 // ===== קבלת תשובה =====
+// תמיד מנסים את ה-AI קודם. נופלים למאגר הסטטי רק על כשל אמיתי (שרת
+// כבוי, תקלת רשת, או הגבלת קצב). אין יותר "gate" שיכול להיתקע.
 async function fetchAnswer(question, { another = false } = {}) {
-    if (!useAI) await checkAI();
-    if (useAI) {
-        try {
-            const payload = another
-                ? { question: 'תן תשובה אחרת לגמרי לשאלה הקודמת — ניסוח שונה, זווית שונה, אבל באותה רוח.', history }
-                : { question, history };
-            const res = await fetch('/api/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            if (res.status === 429) {
-                return another ? getAnotherResponse(question, currentText) : getResponse(question);
-            }
-            if (!res.ok) throw new Error('api');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000); // הגנת קפיאה
+    try {
+        const payload = another
+            ? { question: 'תן תשובה אחרת לגמרי לשאלה הקודמת — ניסוח שונה, זווית שונה, אבל באותה רוח.', history }
+            : { question, history };
+        const res = await fetch('/api/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+        });
+        clearTimeout(timer);
+
+        // הגבלת קצב / תקרה / אין מפתח — נופלים לסטטי לבקשה הזו בלבד
+        if (res.status === 429 || res.status === 503) {
+            return another ? getAnotherResponse(question, currentText) : getResponse(question);
+        }
+        if (res.ok) {
             const data = await res.json();
             if (!another) {
                 history.push({ role: 'user', content: question });
                 history.push({ role: 'assistant', content: data.text });
             }
             return { t: data.text, m: data.mood };
-        } catch { useAI = false; }
+        }
+        // שגיאת שרת אחרת — סטטי
+    } catch (e) {
+        clearTimeout(timer);
+        // תקלת רשת / timeout / abort — סטטי
     }
     return another ? getAnotherResponse(question, currentText) : getResponse(question);
 }
