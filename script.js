@@ -263,7 +263,7 @@ function rankFromResult(s, qs, broke) {
     if (s >= 76) return { icon: '🔥', name: 'איום תקשורתי', headline: 'כמעט שברת אותו — הוא בקושי החזיק' };
     if (s >= 51) return { icon: '💧', name: 'חוקר בוועדה', headline: 'התחיל להזיע — הצלחה ניכרת' };
     if (s >= 26) return { icon: '🎙️', name: 'עיתונאי אולפן', headline: 'שאלות לא רעות, אבל הוא שלט בבמה' };
-    return { icon: '📰', name: 'כתב מקומי', headline: 'הוא יצא יבש לגמרי. תחזור עם שאלות חזקות יותר.' };
+    return { icon: '📰', name: 'כתב מקומי', headline: 'חח, לא דיגדגת אותו אפילו.' };
 }
 
 // ===== דמות =====
