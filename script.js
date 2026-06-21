@@ -616,10 +616,20 @@ async function ask() {
     else if (isDevastating(question)) showBreaking('שאלה כואבת במיוחד');
     else if (prevStress < 70 && stress >= 70) showBreaking('הלחץ מתחיל להישבר...');
 
-    // אירוע נדיר (1 ל-15) — עוקף את התשובה הרגילה, אבל עדיין סופר כסבב.
-    if (Math.random() < 1 / 15) {
+    // אירוע נדיר (1 ל-15) — ביבי חומק טכנית. הסבב לא נספר, ויש בונוס מתח +5%
+    // כי "קרענו לו את הכובע". הדלתא בטוסט מצרפת גם את ההשפעה של השאלה עצמה
+    // (שכבר הוחלה ע"י applyStress למעלה) כדי שהמספר יתאם למה שהמד באמת זז.
+    // מדלגים על קלט ריק ועל שאלת הכרעה — יקר מדי להחמיץ אותם.
+    if (question.trim() && !decisiveActive && Math.random() < 1 / 15) {
         await playRareEvent();
-        advanceRound();
+        stress = Math.min(100, stress + 5);
+        const delta = stress - prevStress;
+        updateMeter();
+        if (delta > 0) showFeedback(delta, 'נאלץ לחמוק');
+        resetBtn.classList.remove('hidden');
+        askBtn.disabled = false;
+        questionInput.value = '';
+        if (stress >= 100) setTimeout(() => endGame(), 1800);
         return;
     }
 
