@@ -447,7 +447,9 @@ body.bd-3 #bibi { transform: scale(1.15); }
     position: absolute;
     bottom: 8px;
     left: 50%;
-    transform: translateX(50%);
+    transform: translateX(-50%);
+    max-width: 92%;
+    text-align: center;
     background: rgba(26,26,26,0.85);
     color: white;
     font-size: 14px;
