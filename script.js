@@ -4,12 +4,10 @@ const bubble = document.getElementById('speech-bubble');
 const answerText = document.getElementById('answer-text');
 const questionInput = document.getElementById('question');
 const askBtn = document.getElementById('ask-btn');
-const anotherBtn = document.getElementById('another-btn');
-const copyBtn = document.getElementById('copy-btn');
 const cardBtn = document.getElementById('card-btn');
 const pressureFill = document.getElementById('pressure-fill');
 const pressureValue = document.getElementById('pressure-value');
-const qCounter = document.getElementById('q-counter');
+const hudQEl = document.getElementById('hud-q');
 const loadingLine = document.getElementById('loading-line');
 const comboEl = document.getElementById('combo');
 const breaking = document.getElementById('breaking');
@@ -26,6 +24,8 @@ const screenEnd = document.getElementById('screen-end');
 const startBtn = document.getElementById('start-btn');
 const retryBtn = document.getElementById('retry-btn');
 const shareBtn = document.getElementById('share-btn');
+const startShareBtn = document.getElementById('start-share-btn');
+const playShareBtn = document.getElementById('play-share-btn');
 const bestLine = document.getElementById('best-line');
 const feedbackToast = document.getElementById('feedback-toast');
 const feedbackDelta = document.getElementById('feedback-delta');
@@ -36,30 +36,43 @@ const endHeadline = document.getElementById('end-headline');
 const endStress = document.getElementById('end-stress');
 const endQuestions = document.getElementById('end-questions');
 const endBest = document.getElementById('end-best');
-const endInterviewBtn = document.getElementById('end-interview-btn');
+const resetBtn = document.getElementById('reset-btn');
 
 // ===== מיפוי הבעות =====
 const MOOD_IMAGES = {
     idle: 'bibi-idle.png', thinking: 'bibi-thinking.png', answering: 'bibi-answering.png',
-    angry: 'bibi-angry.jpg', proud: 'bibi-proud.jpg', suspicious: 'bibi-suspicious.jpg',
-    emotional: 'bibi-emotional.jpg', accusing: 'bibi-accusing.jpg', sly: 'bibi-sly.jpg',
-    dodging: 'bibi-dodging.jpg', defiant: 'bibi-defiant.jpg', 'nervous-smile': 'bibi-nervous-smile.jpg',
+    angry: 'bibi-angry.png', proud: 'bibi-proud.png', suspicious: 'bibi-suspicious.png',
+    emotional: 'bibi-emotional.png', accusing: 'bibi-accusing.png', sly: 'bibi-sly.png',
+    dodging: 'bibi-dodging.png', defiant: 'bibi-defiant.png', 'nervous-smile': 'bibi-nervous-smile.png',
+    // מצבים מיוחדים לאירועים נדירים (לא נשלחים ל-Claude, נבחרים מקומית).
+    leftstage: 'bibi-leftstage.png',   // ביבי עזב את הבמה
+    shutdown: 'bibi-shutdown.png',     // קריסת מערכת
+    silenced: 'bibi-silenced.png',     // השתיק אותך
 };
 const SPIN_MOODS = ['dodging', 'sly', 'accusing', 'suspicious', 'defiant', 'angry'];
 
 // ===== נתוני משחק =====
-// אין תקרה — ראיון פתוח, הסיום ב-100% מתח או בלחיצה על "סיים את הראיון".
+// 7 שאלות, סוף אוטומטי. ב-100% מתח — ניצחון מיידי. אחרי 7 שאלות:
+// אם 90–99% → מופעלת אוטומטית "שאלת הכרעה" אחת. אחרת — מסך סיום.
+const MAX_ROUNDS = 7;
 
-const SENSITIVE_KEYWORDS = [
-    'משפט', 'תיק', 'שוחד', 'חקירה', 'פרקליטות', 'היועצת', 'אישומים', 'עדות',
-    'סיגר', 'שמפניה', 'שמפניות', 'מתנות', 'צוללות', 'הדלפה', 'גלנט',
-    'תקשורת', 'ערוץ', 'קואליציה', 'חרדים', 'גיוס', 'בן גביר', 'סמוטריץ',
-    'בחירות', 'סקרים', 'יוקר', 'מחירים', 'דיור',
-];
-const DEVASTATING_KEYWORDS = [
-    'מחדל', '7 באוקטובר', 'שביעי באוקטובר', 'חטופים', 'משפחות החטופים',
-    'כישלון', 'נכשל', 'אשם', 'אחריות', 'אחראי', 'תפטר', 'שרה', 'יאיר',
-];
+// נושאים — חלוקה הגיונית של מילות מפתח לנושאים, כדי שניתן יהיה
+// לזהות חזרה על אותו נושא ולהפעיל "תשואות פוחתות".
+// סדר ההגדרה חשוב: הנושא הראשון שמתאים מנצח (devastating מופיע אחרון אבל
+// המילים הייחודיות שלו לא חופפות לאחרים).
+const TOPICS = {
+    trial:     { keywords: ['משפט', 'תיק', 'תיקים', 'שוחד', 'חקירה', 'פרקליטות', 'היועצת', 'אישומים', 'עדות'], intensity: 'sensitive' },
+    scandals:  { keywords: ['סיגר', 'שמפניה', 'שמפניות', 'מתנות', 'צוללות', 'הדלפה'], intensity: 'sensitive' },
+    family:    { keywords: ['שרה', 'יאיר', 'אשתך', 'הבת', 'הבן', 'המשפחה'], intensity: 'sensitive' },
+    coalition: { keywords: ['קואליציה', 'חרדים', 'גיוס', 'בן גביר', 'סמוטריץ', 'בחירות', 'סקרים', 'גלנט'], intensity: 'sensitive' },
+    media:     { keywords: ['תקשורת', 'ערוץ', 'עיתונאים', 'עיתונות'], intensity: 'sensitive' },
+    economy:   { keywords: ['יוקר', 'מחירים', 'דיור'], intensity: 'sensitive' },
+    october:   { keywords: ['מחדל', '7 באוקטובר', 'שביעי באוקטובר', 'חטופים', 'משפחות החטופים'], intensity: 'devastating' },
+    blame:     { keywords: ['כישלון', 'נכשל', 'אשם', 'אחריות', 'אחראי', 'תפטר', 'אשמתך'], intensity: 'devastating' },
+};
+
+// מילים שמסמנות "שאלה ישירה" — מקבלות בונוס לחץ קטן בלי קשר לנושא.
+const DIRECT_KEYWORDS = ['כן או לא', 'האם', 'ידעת', 'אחראי', 'בלי להתחמק', 'תענה'];
 const HIDDEN_KEYWORDS = [
     { k: 'צוללות', text: 'פרשת הצוללות שוב בכותרות' },
     { k: 'שמפניה', text: 'מתנות יוקרה? אין כאן כלום' },
@@ -77,22 +90,34 @@ const LOADING_LINES = [
     'מחפש את מי להאשים', 'מחשב רמת ספין אופטימלית', 'מתכונן להתחמק',
 ];
 
-const QUESTION_CARDS = [
-    'מה הדבר היחיד שלא היית רוצה שישאלו אותך עכשיו?',
-    'מי באמת אשם במחדל של 7 באוקטובר?',
-    'תגיד כן או לא: אתה מתכוון להתפטר?',
-    'מה אמרת לשרה אחרי הריאיון האחרון?',
+// קלפי שאלה בשלוש רמות. הבחירה משוקללת: 70% שטויות, 20% ביניים, 10% קשות.
+// המטרה: שלא ניתן יהיה לנצח את המשחק רק ע"י לחיצה חוזרת על "קלף שאלה".
+const SILLY_CARDS = [
+    'אתה אוהב חמוצים?',
+    'אתה מעדיף חתולים או כלבים?',
+    'איזה אייסקרים הכי טעים?',
+    'מי המבשל הכי טוב במשפחה שלך?',
+    'מה דעתך על מכבי תל אביב?',
+    'אתה יודע לרקוד?',
+    'מה הסדרה האהובה עליך?',
+    'תתאר ארוחת בוקר ישראלית מושלמת.',
+    'אתה אוכל בורקסים בבוקר?',
+    'מתי הלכת לים בפעם האחרונה?',
+    'אתה צופה בריאליטי?',
+    'מה הצבע האהוב עליך?',
+];
+const MEDIUM_CARDS = [
     'מתי בפעם האחרונה הודית בטעות?',
-    'אם תפסיד בבחירות הבאות — מה תעשה ביום שאחרי?',
-    'מי בקואליציה אומר לך כן כל הזמן ופוחד להגיד לך לא?',
-    'אתה ישן בלילה?',
-    'כמה זה עולה לך — באמת — הסיגרים והשמפניות?',
-    'מה היה עושה רבין על המחדל?',
     'אם היית מתחיל מחדש — מה היית עושה אחרת?',
-    'מה תגיד למשפחות החטופים בלי טקסטים מוכנים?',
-    'מי הקואליציה משרתת — אותך או את המדינה?',
-    'תאר בכנות יום אחד מהקדנציה הזאת בלי לאשים אף אחד.',
-    'אם איראן הייתה תוקפת מחר — האם אתה באמת מוכן?',
+    'מה הדבר היחיד שלא היית רוצה שישאלו אותך עכשיו?',
+    'אתה ישן בלילה?',
+];
+// קלפים קשים — חייבים להיות "נצחיים" ולא תלויי-זמן.
+// כלל: אסור להזכיר אירוע שעלול להשתנות / להיגמר (כמו "החטופים עוד מוחזקים").
+// במקום זה — שאלות על אופי, אחריות, סגנון, שלעולם לא יוצאות מהקשר.
+const HARD_CARDS = [
+    'מי באמת אשם במחדל של 7 באוקטובר?',
+    'מתי בפעם האחרונה לקחת אחריות אישית — בלי "אבל"?',
 ];
 
 const ACHIEVEMENTS = {
@@ -114,7 +139,9 @@ let currentText = '';
 let currentQuestion = '';
 let typingTimeout = null;
 let loadingTimer = null;
+let decisiveActive = false; // האם אנחנו כרגע בשאלת ההכרעה (אחרי 7 שאלות + 90-99%)
 const history = [];
+const topicHistory = []; // רשימת הנושאים שכבר הופיעו בראיון הנוכחי — לתשואות פוחתות
 
 const unlocked = new Set(JSON.parse(localStorage.getItem('bibi_achievements') || '[]'));
 const bestRecord = {
@@ -131,6 +158,28 @@ function showScreen(name) {
     screenStart.classList.toggle('hidden', name !== 'start');
     screenPlay.classList.toggle('hidden', name !== 'play');
     screenEnd.classList.toggle('hidden', name !== 'end');
+}
+
+// מד הנקודות: 7 נקודות, כל אחת מייצגת שאלה. ממולאות = הסתיימה,
+// נוכחית = פועמת אדומה, ריקות = עוד לפנינו.
+function renderRoundDots(currentRound) {
+    let html = '';
+    for (let i = 1; i <= MAX_ROUNDS; i++) {
+        let cls = 'round-dot';
+        if (i < currentRound) cls += ' done';
+        else if (i === currentRound) cls += ' current';
+        html += `<span class="${cls}"></span>`;
+    }
+    return html;
+}
+
+// ה-HUD מציג "שאלה X/7" + מד נקודות במשחק רגיל, או טקסט מיוחד כמו "⚡ שאלת הכרעה".
+function setHudCounter(value) {
+    if (typeof value === 'number') {
+        hudQEl.innerHTML = `<span class="round-label">שאלה ${value}/${MAX_ROUNDS}</span><span class="round-dots">${renderRoundDots(value)}</span>`;
+    } else {
+        hudQEl.textContent = value;
+    }
 }
 
 function updateBestLine() {
@@ -150,19 +199,19 @@ function startGame() {
     roundQ = 0;
     stress = 0;
     comboCount = 0;
+    decisiveActive = false;
     currentText = '';
     currentQuestion = '';
     history.length = 0;
+    topicHistory.length = 0;
     document.body.classList.remove('bd-1', 'bd-2', 'bd-3');
     panicBadge.classList.add('hidden');
     breaking.classList.add('hidden');
     comboEl.classList.add('hidden');
-    anotherBtn.classList.add('hidden');
-    copyBtn.classList.add('hidden');
-    endInterviewBtn.classList.add('hidden'); // יופיע אחרי שאלה ראשונה
+    resetBtn.classList.add('hidden'); // יופיע אחרי שאלה ראשונה
     pressureFill.style.width = '0%';
     pressureValue.textContent = '0%';
-    qCounter.textContent = '1';
+    setHudCounter(1);
     questionInput.value = '';
     if (typingTimeout) clearTimeout(typingTimeout);
     answerText.textContent = '';
@@ -174,8 +223,9 @@ function startGame() {
 }
 
 // ===== סיום סיבוב =====
-function endGame() {
+function endGame(opts = {}) {
     const broke = stress >= 100;
+    const nearMiss = !broke && !!opts.nearMiss;
     const r = rankFromResult(stress, roundQ, broke);
 
     // עדכון שיא
@@ -191,9 +241,11 @@ function endGame() {
         if (!broke) newBest = true;
     }
 
-    endIcon.textContent = r.icon;
-    endRank.textContent = r.name;
-    endHeadline.textContent = r.headline;
+    endIcon.textContent = nearMiss ? '😤' : r.icon;
+    endRank.textContent = `יצאת ${r.name}`;
+    endHeadline.textContent = nearMiss
+        ? 'כמעט שברת אותו. הוא שרד על חוט השערה.'
+        : r.headline;
     endStress.textContent = `${stress}%`;
     endQuestions.textContent = String(roundQ);
     endBest.textContent = newBest ? '🏆 שיא חדש שלך!' :
@@ -269,21 +321,82 @@ function stopLoadingLines() {
 // ===== מתח מצטבר =====
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-function applyStress(question) {
-    const p = calculatePressure(question);
-    const comboBonus = comboCount > 1 ? (comboCount - 1) * 6 : 0;
-    let delta = null, label = '';
-    if (isDevastating(question)) { delta = 20 + comboBonus; label = 'פגיעה ישירה'; }
-    else if (isSensitive(question)) { delta = 11 + comboBonus; label = 'שאלה רגישה'; }
-    else if (p >= 55) { delta = 9 + comboBonus; label = 'שאלה קשה'; }
-    else if (p >= 35) { delta = 5; label = 'שאלה מסקרנת'; }
+// ===== זיהוי נושא / סוג שאלה =====
+function detectTopic(q) {
+    for (const [name, data] of Object.entries(TOPICS)) {
+        if (data.keywords.some(kw => q.includes(kw))) return { name, ...data };
+    }
+    return null;
+}
+function isDirectQuestion(q) {
+    return DIRECT_KEYWORDS.some(kw => q.includes(kw));
+}
+// כפל תשואות פוחתות: 1.00 לראשונה, 0.55 לשנייה, 0.25 לשלישית, 0.10 מהרביעית והלאה
+function topicMultiplier(topicName) {
+    if (!topicName) return 1;
+    const seen = topicHistory.filter(t => t === topicName).length;
+    return [1.0, 0.55, 0.25, 0.10][Math.min(seen, 3)];
+}
 
-    const before = stress;
-    if (delta === null) {
+function applyStress(question, opts = {}) {
+    const topic = detectTopic(question);
+    const p = calculatePressure(question);
+    const direct = isDirectQuestion(question);
+
+    // ניקוד בסיס לפי עוצמה
+    let baseDelta = 0;
+    let label = '';
+    if (topic?.intensity === 'devastating') { baseDelta = 20; label = 'פגיעה ישירה'; }
+    else if (topic?.intensity === 'sensitive') { baseDelta = 11; label = 'שאלה רגישה'; }
+    else if (p >= 55) { baseDelta = 9; label = 'שאלה קשה'; }
+    else if (p >= 35) { baseDelta = 5; label = 'שאלה מסקרנת'; }
+
+    // שאלה רכה לחלוטין ובלי "כיוון ישיר" — ביבי מתאושש
+    if (baseDelta === 0 && !direct) {
+        const before = stress;
         stress = Math.max(0, Math.round(stress * 0.7) - 5);
+        topicHistory.push(null);
         return { delta: stress - before, label: 'התרככת — חזר לשליטה' };
     }
+
+    // תשואות פוחתות לאותו נושא
+    const seenCount = topic ? topicHistory.filter(t => t === topic.name).length : 0;
+    const mult = topic ? topicMultiplier(topic.name) : 1;
+    let delta = Math.round(baseDelta * mult);
+
+    // בונוס שאלה ישירה — קטן אבל מורגש
+    if (direct) {
+        delta += 4;
+        if (!label) label = 'שאלה ישירה';
+    }
+
+    // בונוס קומבו — comboCount כבר עודכן ב-ask() לפני הקריאה
+    if (comboCount >= 2) {
+        delta += (comboCount - 1) * 6;
+    }
+
+    // תווית "נושא חוזר" דורסת את התווית הרגילה כשבאמת חוזרים
+    if (topic && seenCount === 1) label = 'ערני לנושא — נסה מכיוון אחר';
+    else if (topic && seenCount === 2) label = 'אותו נושא — האפקט נשחק';
+    else if (topic && seenCount >= 3) label = 'מחוסן לנושא הזה';
+
+    // התנגדות מדורגת: ככל שביבי לחוץ יותר, קשה יותר להמשיך להעלות את הרף.
+    // 0–60%: מלא, 60–80%: 80%, 80–95%: 60%, 95%+: 35%.
+    let resistMult;
+    if (stress < 60) resistMult = 1.0;
+    else if (stress < 80) resistMult = 0.8;
+    else if (stress < 95) resistMult = 0.6;
+    else resistMult = 0.35;
+    delta = Math.max(1, Math.round(delta * resistMult));
+
+    // בונוס שאלת הכרעה (+15%) — אחרי ההתנגדות, לרגע הדרמטי.
+    if (opts.decisive) {
+        delta = Math.round(delta * 1.15);
+    }
+
+    const before = stress;
     stress = Math.min(100, stress + delta);
+    topicHistory.push(topic?.name || null);
     return { delta: stress - before, label };
 }
 
@@ -309,7 +422,8 @@ function setPanic(intensity) {
 
 // ===== קומבו =====
 function showCombo(n) {
-    comboEl.innerHTML = `COMBO x${n}<span class="combo-sub">רמת הלחץ עולה</span>`;
+    const subtext = n >= 3 ? 'רצף מסוכן' : 'רמת הלחץ עולה';
+    comboEl.innerHTML = `COMBO x${n}<span class="combo-sub">${subtext}</span>`;
     comboEl.classList.remove('hidden');
     requestAnimationFrame(() => comboEl.classList.add('show'));
 }
@@ -377,17 +491,20 @@ function sysMsg(text, ms) {
 async function playRareEvent() {
     unlock('rare');
     hideBubble();
-    const type = ['glitch', 'micoff', 'disconnect', 'blackout', 'nocomment'][rand(0, 4)];
-    if (type === 'glitch') { glitchBibi(); await sysMsg('⚠ מערכת הספינים קרסה', 1800); setBibiMood('idle'); }
-    else if (type === 'micoff') { await sysMsg('🎤 המיקרופון נכבה... במקרה', 2000); setBibiMood('suspicious'); }
+    const type = ['glitch', 'micoff', 'disconnect', 'blackout', 'nocomment', 'advisers', 'leftstage'][rand(0, 6)];
+    if (type === 'glitch') { glitchBibi(); await sysMsg('⚠ מערכת הספינים קרסה', 1800); setBibiMood('shutdown'); }
+    else if (type === 'micoff') { await sysMsg('🎤 המיקרופון נכבה... במקרה', 2000); setBibiMood('silenced'); }
     else if (type === 'disconnect') { glitchBibi(); await sysMsg('📡 החיבור נותק', 2000); setBibiMood('idle'); }
     else if (type === 'blackout') {
         fx.className = 'blackout';
         await new Promise(r => setTimeout(r, 1200));
         fx.className = '';
         await sysMsg('💡 האורות חזרו... איפה היינו?', 1600);
-        setBibiMood('nervous-smile');
-    } else {
+        setBibiMood('shutdown');
+    }
+    else if (type === 'advisers') { await sysMsg('🤝 היועצים מבקשים הפסקה', 2000); setBibiMood('dodging'); }
+    else if (type === 'leftstage') { await sysMsg('🚪 הוא יצא מהבמה. רגע, רגע...', 2200); setBibiMood('leftstage'); }
+    else {
         setBibiMood('nervous-smile');
         currentText = 'אין לי תגובה כרגע.';
         await wait(600);
@@ -398,31 +515,24 @@ async function playRareEvent() {
 // ===== קבלת תשובה =====
 // תמיד מנסים את ה-AI קודם. נופלים למאגר הסטטי רק על כשל אמיתי (שרת
 // כבוי, תקלת רשת, או הגבלת קצב). אין יותר "gate" שיכול להיתקע.
-async function fetchAnswer(question, { another = false } = {}) {
+async function fetchAnswer(question) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000); // הגנת קפיאה
     try {
-        const payload = another
-            ? { question: 'תן תשובה אחרת לגמרי לשאלה הקודמת — ניסוח שונה, זווית שונה, אבל באותה רוח.', history }
-            : { question, history };
         const res = await fetch('/api/ask', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ question, history }),
             signal: controller.signal,
         });
         clearTimeout(timer);
 
         // הגבלת קצב / תקרה / אין מפתח — נופלים לסטטי לבקשה הזו בלבד
-        if (res.status === 429 || res.status === 503) {
-            return another ? getAnotherResponse(question, currentText) : getResponse(question);
-        }
+        if (res.status === 429 || res.status === 503) return getResponse(question);
         if (res.ok) {
             const data = await res.json();
-            if (!another) {
-                history.push({ role: 'user', content: question });
-                history.push({ role: 'assistant', content: data.text });
-            }
+            history.push({ role: 'user', content: question });
+            history.push({ role: 'assistant', content: data.text });
             return { t: data.text, m: data.mood };
         }
         // שגיאת שרת אחרת — סטטי
@@ -430,14 +540,42 @@ async function fetchAnswer(question, { another = false } = {}) {
         clearTimeout(timer);
         // תקלת רשת / timeout / abort — סטטי
     }
-    return another ? getAnotherResponse(question, currentText) : getResponse(question);
+    return getResponse(question);
+}
+
+// ===== ניהול סוף סבב / שאלת הכרעה =====
+// קוראים אחרי כל שאלה שהושלמה (רגילה או אירוע נדיר). מקדם את המונה ומחליט
+// אם המשחק נגמר, אם להפעיל שאלת הכרעה, או אם להמשיך הלאה.
+function advanceRound() {
+    roundQ++;
+    const reachedLimit = roundQ >= MAX_ROUNDS;
+    if (!reachedLimit && !decisiveActive) setHudCounter(roundQ + 1);
+    askBtn.disabled = false;
+    questionInput.value = '';
+
+    if (stress >= 100) {
+        setTimeout(() => endGame(), 2200);
+    } else if (decisiveActive) {
+        // שאלת ההכרעה הסתיימה בלי שבירה — סיום "כמעט"
+        setTimeout(() => endGame({ nearMiss: true }), 2200);
+    } else if (reachedLimit) {
+        if (stress >= 90) setTimeout(triggerDecisive, 1800);
+        else setTimeout(() => endGame(), 2200);
+    }
+}
+
+// נכנס לשאלת הכרעה: סימן ויזואלי בולט + שינוי ה-HUD, מקבל שאלה אחת נוספת.
+function triggerDecisive() {
+    decisiveActive = true;
+    setHudCounter('⚡ שאלת הכרעה');
+    showBreaking('🎯 הוא על הקצה — שאלת הכרעה אחת');
+    questionInput.focus();
 }
 
 // ===== זרימה ראשית =====
-function isSensitive(q) { return SENSITIVE_KEYWORDS.some(k => q.includes(k)); }
-function isDevastating(q) { return DEVASTATING_KEYWORDS.some(k => q.includes(k)); }
-function isDanger(q) { return isSensitive(q) || isDevastating(q); }
-function isHard(q) { return calculatePressure(q) >= 50 || isDanger(q); }
+function isDevastating(q) { return detectTopic(q)?.intensity === 'devastating'; }
+function isDanger(q) { return !!detectTopic(q); }
+function isHard(q) { return !!detectTopic(q) || calculatePressure(q) >= 50; }
 function findHidden(q) { return HIDDEN_KEYWORDS.find(h => q.includes(h.k)); }
 
 async function ask() {
@@ -445,8 +583,6 @@ async function ask() {
     const question = questionInput.value;
     currentQuestion = question;
     askBtn.disabled = true;
-    anotherBtn.classList.add('hidden');
-    copyBtn.classList.add('hidden');
 
     // זיהוי ג'יבריש: יש קלט אבל אין אות עברית אחת
     const noHeb = question.trim().length > 0 && !/[֐-׿]/.test(question);
@@ -454,8 +590,12 @@ async function ask() {
     totalQuestionsLifetime++;
     if (totalQuestionsLifetime === 1) unlock('first');
 
-    // קומבו
-    if (isHard(question)) {
+    // קומבו — דורש שאלה קשה *וגם* מעבר לנושא שונה מהקודם.
+    // ככה ספאם של אותו נושא לא ייתן בונוסי קומבו.
+    const currentTopic = detectTopic(question);
+    const lastTopic = topicHistory[topicHistory.length - 1] ?? null;
+    const differentTopic = !!currentTopic && currentTopic.name !== lastTopic;
+    if (isHard(question) && differentTopic) {
         comboCount++;
         if (comboCount >= 2) showCombo(comboCount);
         if (comboCount >= 3) unlock('combo3');
@@ -466,7 +606,7 @@ async function ask() {
 
     // עדכון המתח המצטבר (מחזיר delta + label לפידבק)
     const prevStress = stress;
-    const stressResult = applyStress(question);
+    const stressResult = applyStress(question, { decisive: decisiveActive });
     if (noHeb) stressResult.label = 'לא בעברית — בזבזת תור';
 
     // Breaking News (במינון)
@@ -476,14 +616,10 @@ async function ask() {
     else if (isDevastating(question)) showBreaking('שאלה כואבת במיוחד');
     else if (prevStress < 70 && stress >= 70) showBreaking('הלחץ מתחיל להישבר...');
 
-    // אירוע נדיר (1 ל-15)
+    // אירוע נדיר (1 ל-15) — עוקף את התשובה הרגילה, אבל עדיין סופר כסבב.
     if (Math.random() < 1 / 15) {
         await playRareEvent();
-        roundQ++;
-        qCounter.textContent = String(roundQ + 1);
-        askBtn.disabled = false;
-        questionInput.value = '';
-        if (stress >= 100) setTimeout(endGame, 800);
+        advanceRound();
         return;
     }
 
@@ -502,65 +638,33 @@ async function ask() {
     updateMeter(answer.m);
     showFeedback(stressResult.delta, stressResult.label);
 
-    anotherBtn.classList.remove('hidden');
-    copyBtn.classList.remove('hidden');
-    endInterviewBtn.classList.remove('hidden');
+    resetBtn.classList.remove('hidden');
 
-    roundQ++;
-    qCounter.textContent = String(roundQ + 1);
-    questionInput.value = '';
-    askBtn.disabled = false;
-
-    if (stress >= 100) {
-        // לתת לבועה זמן להופיע לפני המעבר
-        setTimeout(endGame, 2200);
-    }
-}
-
-async function another() {
-    if (gameState !== 'play') return;
-    anotherBtn.disabled = true;
-    hideBubble();
-    setBibiMood('thinking');
-    startLoadingLines();
-
-    const [answer] = await Promise.all([fetchAnswer(currentQuestion, { another: true }), wait(1100)]);
-
-    stopLoadingLines();
-    currentText = answer.t;
-    setBibiMood(answer.m);
-    await wait(500);
-    showBubble(answer.t);
-    updateMeter(answer.m);
-
-    anotherBtn.disabled = false;
+    advanceRound();
 }
 
 // ===== קלף שאלה =====
 function pickCard() {
-    const card = QUESTION_CARDS[Math.floor(Math.random() * QUESTION_CARDS.length)];
+    const r = Math.random();
+    const pool = r < 0.10 ? HARD_CARDS : r < 0.30 ? MEDIUM_CARDS : SILLY_CARDS;
+    const card = pool[Math.floor(Math.random() * pool.length)];
     questionInput.value = card;
     questionInput.focus();
 }
 
 // ===== פעולות =====
-async function copyAnswer() {
-    if (!currentText) return;
-    try { await navigator.clipboard.writeText(currentText); flashButton(copyBtn, 'הועתק!'); }
-    catch { flashButton(copyBtn, 'לא הצלחתי'); }
-}
-function flashButton(btn, text) {
-    const original = btn.textContent;
-    btn.textContent = text;
-    setTimeout(() => btn.textContent = original, 1500);
-}
 function buildShareText() {
     const broke = stress >= 100;
-    if (broke) return `שברתי את ביבי תוך ${roundQ} שאלות! 💥\n\nתצליחו יותר טוב? נסו גם אתם 👇`;
+    if (broke) return `הוצאתי את הפוליטיקאי הטוב בכל הזמנים מהכלים תוך ${roundQ} שאלות 😭\nנראה אותך מצליח בפחות.`;
     return `הגעתי ל-${stress}% לחץ ב-${roundQ} שאלות.\n\nתצליחו להוציא את ביבי מהכלים? 👇`;
 }
 function shareEnd() {
     window.open(`https://wa.me/?text=${encodeURIComponent(buildShareText())}`, '_blank');
+}
+// שיתוף הזמנה ממסך הפתיחה — מצרף את כתובת האפליקציה כדי שהחבר יוכל להיכנס.
+function shareInvite() {
+    const text = `תנסה להוציא את ביבי מהכלים — יש לך 7 שאלות 👇\n${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
 function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
@@ -568,9 +672,9 @@ function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 startBtn.addEventListener('click', startGame);
 retryBtn.addEventListener('click', startGame);
 shareBtn.addEventListener('click', shareEnd);
-endInterviewBtn.addEventListener('click', () => { if (gameState === 'play') endGame(); });
+startShareBtn.addEventListener('click', shareInvite);
+playShareBtn.addEventListener('click', shareInvite);
+resetBtn.addEventListener('click', () => { if (gameState === 'play') startGame(); });
 cardBtn.addEventListener('click', pickCard);
 askBtn.addEventListener('click', ask);
-anotherBtn.addEventListener('click', another);
-copyBtn.addEventListener('click', copyAnswer);
 questionInput.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });

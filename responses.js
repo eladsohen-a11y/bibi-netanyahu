@@ -214,6 +214,15 @@ function pickEasterEgg(question) {
     return null;
 }
 
+// ברכה / מחמאה / עלבון — נבדק לפני נושאים רגילים, כך ש"מה נשמע" וכד'
+// מקבלים תגובה מתאימה ולא נופלים לתשובה כללית אקראית.
+function matchIntent(question) {
+    for (const data of Object.values(INTENTS)) {
+        if (data.keywords.some(kw => question.includes(kw))) return data;
+    }
+    return null;
+}
+
 function matchCategory(question) {
     let matchedCategory = 'general';
     let maxMatches = 0;
@@ -237,6 +246,8 @@ function getResponse(question) {
     if (!q) return pickRandom(EMPTY_ANSWERS);
     const egg = pickEasterEgg(q);
     if (egg) return egg;
+    const intent = matchIntent(q);
+    if (intent) return pickRandom(intent.answers);
     const category = matchCategory(q);
     return pickRandom(RESPONSES[category].answers);
 }
@@ -249,6 +260,11 @@ function getAnotherResponse(question, currentText) {
     }
     const egg = pickEasterEgg(q);
     if (egg && egg.t !== currentText) return egg;
+    const intent = matchIntent(q);
+    if (intent) {
+        const intentPool = intent.answers.filter(a => a.t !== currentText);
+        if (intentPool.length) return pickRandom(intentPool);
+    }
     const category = matchCategory(q);
     const pool = RESPONSES[category].answers.filter(a => a.t !== currentText);
     if (pool.length === 0) return pickRandom(RESPONSES.general.answers);
